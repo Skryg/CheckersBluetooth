@@ -9,10 +9,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.skryg.checkersbluetooth.game.ui.theme.GameTheme
 import com.skryg.checkersbluetooth.ui.Navigation
 import com.skryg.checkersbluetooth.ui.theme.CheckersBluetoothTheme
 
 class MainActivity : ComponentActivity() {
+    companion object{
+        var gameTheme = GameTheme.Default
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
