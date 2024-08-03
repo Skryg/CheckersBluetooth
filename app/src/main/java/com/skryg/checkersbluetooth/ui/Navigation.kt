@@ -21,23 +21,25 @@ import com.skryg.checkersbluetooth.ui.screens.SavedGamesDestination
 import com.skryg.checkersbluetooth.ui.screens.SavedGamesScreen
 import com.skryg.checkersbluetooth.ui.screens.SettingsDestination
 import com.skryg.checkersbluetooth.ui.screens.SettingsScreen
+import com.skryg.checkersbluetooth.ui.utils.EmptyComposable
 import com.skryg.checkersbluetooth.ui.utils.MenuBottomBar
 
 
 abstract class NavigationDestination(
     val route: String,
-    val topBarContent: @Composable (() -> Unit)? = {},
-    val bottomBarContent: @Composable() (() -> Unit)? = {},
+    val defaultTopBar: Boolean = true,
+    val topBarContent:  @Composable() () -> Unit = @Composable { },
+    val defaultBottomBar: Boolean = true,
+    val bottomBarContent:  @Composable() () -> Unit = @Composable { },
     val icon: ImageVector? = null,
     val name: String = ""
 )
 
-val navigationDestinations = listOf(
-    MainDestination,
-    SavedGamesDestination,
-    SettingsDestination
+val navigationDestinations = mapOf(
+    MainDestination.route to MainDestination,
+    SavedGamesDestination.route to SavedGamesDestination,
+    SettingsDestination.route to SettingsDestination
 )
-val navMaps by lazy { navigationDestinations.associateBy { it.route } }
 
 
 @Composable
@@ -46,10 +48,12 @@ fun Navigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val navDest = navigationDestinations[currentRoute]
+
     Scaffold(
-        topBar = navMaps[currentRoute]?.topBarContent ?: {},
-        bottomBar = if (navMaps[currentRoute]?.bottomBarContent != null) {
-            navMaps[currentRoute]?.bottomBarContent ?: {}
+        topBar = navDest?.topBarContent ?: {},
+        bottomBar = if (navDest?.defaultBottomBar == false) {
+            navigationDestinations[currentRoute]?.bottomBarContent ?: {}
         } else {
             { MenuBottomBar(navController = navController) }
         }

@@ -7,7 +7,6 @@ import com.skryg.checkersbluetooth.ui.NavigationDestination
 
 object SettingsDestination: NavigationDestination(
     route = "settings_screen",
-    bottomBarContent = null,
     icon = Icons.Default.Settings,
     name = "Settings"
 )
