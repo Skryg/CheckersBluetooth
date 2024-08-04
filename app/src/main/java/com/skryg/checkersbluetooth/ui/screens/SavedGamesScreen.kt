@@ -8,6 +8,7 @@ import com.skryg.checkersbluetooth.ui.NavigationDestination
 object SavedGamesDestination: NavigationDestination(
     route = "saved_games_screen",
     icon = Icons.Default.Menu,
+    defaultTopBar = false,
     name = "Saved Games"
 )
 

@@ -2,11 +2,17 @@ package com.skryg.checkersbluetooth.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,6 +27,9 @@ import com.skryg.checkersbluetooth.ui.screens.SavedGamesDestination
 import com.skryg.checkersbluetooth.ui.screens.SavedGamesScreen
 import com.skryg.checkersbluetooth.ui.screens.SettingsDestination
 import com.skryg.checkersbluetooth.ui.screens.SettingsScreen
+import com.skryg.checkersbluetooth.ui.screens.ThemeChangeDestination
+import com.skryg.checkersbluetooth.ui.screens.ThemeChangeScreen
+import com.skryg.checkersbluetooth.ui.utils.DefaultTopAppBar
 import com.skryg.checkersbluetooth.ui.utils.EmptyComposable
 import com.skryg.checkersbluetooth.ui.utils.MenuBottomBar
 
@@ -38,10 +47,12 @@ abstract class NavigationDestination(
 val navigationDestinations = mapOf(
     MainDestination.route to MainDestination,
     SavedGamesDestination.route to SavedGamesDestination,
-    SettingsDestination.route to SettingsDestination
+    SettingsDestination.route to SettingsDestination,
+    ThemeChangeDestination.route to ThemeChangeDestination
 )
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
@@ -51,9 +62,13 @@ fun Navigation() {
     val navDest = navigationDestinations[currentRoute]
 
     Scaffold(
-        topBar = navDest?.topBarContent ?: {},
+        topBar = if(navDest?.defaultTopBar == false){
+            navDest.topBarContent
+        } else {
+            { if(navDest != null) DefaultTopAppBar(navController = navController, navDest = navDest) }
+        },
         bottomBar = if (navDest?.defaultBottomBar == false) {
-            navigationDestinations[currentRoute]?.bottomBarContent ?: {}
+            navDest.bottomBarContent
         } else {
             { MenuBottomBar(navController = navController) }
         }
@@ -67,7 +82,12 @@ fun Navigation() {
                     SavedGamesScreen()
                 }
                 composable(SettingsDestination.route) {
-                    SettingsScreen()
+                    SettingsScreen{
+                        navController.navigate(ThemeChangeDestination.route)
+                    }
+                }
+                composable(ThemeChangeDestination.route){
+                    ThemeChangeScreen()
                 }
             }
         }

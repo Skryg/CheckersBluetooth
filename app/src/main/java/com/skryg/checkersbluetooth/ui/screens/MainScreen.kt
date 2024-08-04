@@ -32,6 +32,7 @@ import com.skryg.checkersbluetooth.ui.NavigationDestination
 object MainDestination: NavigationDestination(
     route = "main_screen",
     icon = Icons.Default.Home,
+    defaultTopBar = false,
     name = "Main"
 )
 
