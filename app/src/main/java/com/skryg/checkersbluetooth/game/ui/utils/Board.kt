@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -26,7 +27,8 @@ import com.skryg.checkersbluetooth.MainActivity
 import com.skryg.checkersbluetooth.game.ui.theme.GameTheme
 
 @Composable
-fun Board(state: State<UiState>,
+fun Board(modifier:Modifier=Modifier,
+          state: State<UiState>,
           boardUpdater: BoardUpdater? = null,
           theme: GameTheme = MainActivity.gameTheme.value!!
 ) {
@@ -34,8 +36,9 @@ fun Board(state: State<UiState>,
     val uiState = state.value
 
     Canvas(
-        Modifier
+        modifier
             .fillMaxSize()
+            .background(theme.backgroundColor)
             .aspectRatio(1f)
             .border(1.dp, Color.Black)
             .pointerInput(Unit){
@@ -165,7 +168,7 @@ private fun DrawScope.drawMoveOption(offset: Offset, sqSize: Size){
 fun Test() {
     Column(Modifier.fillMaxSize().background(MainActivity.gameTheme.value!!.backgroundColor)){
         val state = remember { mutableStateOf(UiState())}
-        Board(state)
+        Board(state=state)
 
     }
 }

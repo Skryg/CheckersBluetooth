@@ -5,7 +5,7 @@ import com.skryg.checkersbluetooth.database.AppContainer
 import com.skryg.checkersbluetooth.database.AppDataContainer
 
 class CheckersApplication: Application() {
-    private lateinit var container: AppContainer
+    lateinit var container: AppContainer
 
     override fun onCreate() {
         super.onCreate()
