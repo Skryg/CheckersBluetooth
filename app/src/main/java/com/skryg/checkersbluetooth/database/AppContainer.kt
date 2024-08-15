@@ -1,8 +1,8 @@
 package com.skryg.checkersbluetooth.database
 
 import android.content.Context
-import com.skryg.checkersbluetooth.game.GameController
-import com.skryg.checkersbluetooth.game.GameControllerImpl
+import com.skryg.checkersbluetooth.game.logic.GameController
+import com.skryg.checkersbluetooth.game.logic.GameControllerImpl
 
 interface AppContainer {
     val gameController: GameController

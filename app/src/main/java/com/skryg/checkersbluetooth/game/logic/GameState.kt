@@ -1,4 +1,4 @@
-package com.skryg.checkersbluetooth.game
+package com.skryg.checkersbluetooth.game.logic
 
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 

@@ -11,6 +11,8 @@ data class Point(
     val row: Int
 )
 
+operator fun Point.plus(other: Point) = Point(col + other.col, row + other.row)
+
 data class PieceUi(
     val isDark: Boolean = false,
     val isKing: Boolean = false,

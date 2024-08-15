@@ -7,7 +7,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -46,14 +45,11 @@ fun Board(modifier:Modifier=Modifier,
                 detectTapGestures(
                     onTap = {
                         val newPoint = Point(it.x.div(sz).toInt(), it.y.div(sz).toInt())
-                        point = if(newPoint == point) null else newPoint
-                        boardUpdater?.let{
-                            if(point in uiState.movePoints) {
-                                boardUpdater.moveTo(point!!)
-                            }
-                            boardUpdater.updateSelected(point)
-                        }
+                        if(newPoint in uiState.movePoints)
+                            point?.let {boardUpdater?.move(point!!, newPoint)}
 
+                        point = if(newPoint == point) null else newPoint
+                        boardUpdater?.updateSelected(point)
                     })
             }
         ) {

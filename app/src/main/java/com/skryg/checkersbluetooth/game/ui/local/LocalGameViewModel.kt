@@ -1,18 +1,13 @@
 package com.skryg.checkersbluetooth.game.ui.local
 
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.skryg.checkersbluetooth.game.GameController
+import com.skryg.checkersbluetooth.game.logic.GameController
 import com.skryg.checkersbluetooth.game.ui.utils.BoardUpdater
-import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 import com.skryg.checkersbluetooth.game.ui.utils.Point
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -56,8 +51,8 @@ class LocalGameViewModel(private val gameController: GameController) : ViewModel
         }
     }
 
-    override fun PieceUi.moveTo(point: Point) {
-        gameController.makeMove(this.point, point)
+    override fun move(point1: Point, point2: Point) {
+        gameController.makeMove(point1, point2)
     }
 }
 
