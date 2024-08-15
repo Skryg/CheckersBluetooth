@@ -45,7 +45,7 @@ fun Board(modifier:Modifier=Modifier,
                 detectTapGestures(
                     onTap = {
                         val newPoint = Point(it.x.div(sz).toInt(), it.y.div(sz).toInt())
-                        if(newPoint in uiState.movePoints)
+                        if(newPoint in state.value.movePoints)
                             point?.let {boardUpdater?.move(point!!, newPoint)}
 
                         point = if(newPoint == point) null else newPoint

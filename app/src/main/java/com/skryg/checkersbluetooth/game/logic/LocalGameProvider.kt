@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.math.abs
 
 class LocalGameProvider: GameProvider {
     private val _stateFlow = MutableStateFlow(GameState())
@@ -57,6 +58,7 @@ class LocalGameProvider: GameProvider {
 
         val (y,x) = point
         val piece = board[x][y] ?: return emptyList()
+        if(piece.isDark != _stateFlow.value.turn) return emptyList()
 
         val allSites: (Int) -> List<Point> = { depth ->
             val list = ArrayList<Point>()
@@ -111,6 +113,8 @@ class LocalGameProvider: GameProvider {
     private fun getNotAttackMoves(point: Point): List<Point> {
         val (y,x) = point
         val piece = board[x][y] ?: return emptyList()
+        if(piece.isDark != _stateFlow.value.turn) return emptyList()
+
         val list = ArrayList<Point>()
 
         if(piece.isKing){
@@ -147,7 +151,7 @@ class LocalGameProvider: GameProvider {
         val attacks = getAttacks(from)
         if(to in attacks){
 
-            val offset = (to-from)/(to-from).col
+            val offset = (to-from)/abs((to-from).col)
             var f = from+offset
             while(f!=to){
                 val (y,x) = f

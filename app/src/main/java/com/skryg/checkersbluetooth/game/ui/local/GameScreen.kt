@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,21 @@ object LocalGameDestination: NavigationDestination(
     defaultTopBar = true,
     defaultBottomBar = false,
 )
+
+
+
+@Composable
+fun LocalGameScreen(viewModel: LocalGameViewModel = viewModel(factory = AppViewModelProvider.Factory)){
+    Column(Modifier.fillMaxSize()){
+        val playerState1 = viewModel.playerWhiteState.collectAsState()
+        val playerState2 = viewModel.playerBlackState.collectAsState()
+
+        LocalGameButtons(Modifier,{}, {},playerState2, rotated=true)
+        val state = viewModel.gameUiState.collectAsState()
+        Board(modifier = Modifier.weight(1f),state = state, boardUpdater = viewModel)
+        LocalGameButtons(Modifier,{},{}, playerState1, rotated = false)
+    }
+}
 
 
 
@@ -94,7 +110,7 @@ fun LocalGameButtons(modifier:Modifier=Modifier,
 
 @Preview
 @Composable
-fun LocalGameScreen(viewModel: LocalGameViewModel = viewModel(factory = AppViewModelProvider.Factory)){
+fun LocalGameScreenPreview(viewModel: LocalGameViewModel = viewModel(factory = AppViewModelProvider.Factory)){
     Column(Modifier.fillMaxSize()){
         val playerState1 = remember { mutableStateOf(PlayerState(name = "Default")) }
         val playerState2 = remember { mutableStateOf(PlayerState(name = "Default", turn = false)) }

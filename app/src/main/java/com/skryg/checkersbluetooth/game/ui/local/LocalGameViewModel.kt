@@ -3,6 +3,7 @@ package com.skryg.checkersbluetooth.game.ui.local
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.skryg.checkersbluetooth.game.logic.GameController
+import com.skryg.checkersbluetooth.game.logic.LocalGameProvider
 import com.skryg.checkersbluetooth.game.ui.utils.BoardUpdater
 import com.skryg.checkersbluetooth.game.ui.utils.Point
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
@@ -22,6 +23,7 @@ class LocalGameViewModel(private val gameController: GameController) : ViewModel
 
 
     init {
+        gameController.createGame(LocalGameProvider())
         viewModelScope.launch {
             gameController.getGameState().collect {
                 _gameUiState.update { gameState ->
@@ -37,6 +39,10 @@ class LocalGameViewModel(private val gameController: GameController) : ViewModel
                         blackState.copy(turn = it.turn, name = it.black)
                     }
                 }
+                val movables = gameController.movablePieces()
+                _gameUiState.update { gameState ->
+                    gameState.copy(canMove = movables)
+                }
 
             }
         }
@@ -47,7 +53,7 @@ class LocalGameViewModel(private val gameController: GameController) : ViewModel
     override fun updateSelected(point: Point?) {
         val list = point?.let{gameController.calculateMoves(point)}
         _gameUiState.update{
-            it.copy(canMove = list ?: emptyList())
+            it.copy(movePoints = list ?: emptyList())
         }
     }
 

@@ -2,17 +2,8 @@ package com.skryg.checkersbluetooth.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.skryg.checkersbluetooth.game.ui.local.LocalGameDestination
+import com.skryg.checkersbluetooth.game.ui.local.LocalGameScreen
 import com.skryg.checkersbluetooth.ui.screens.MainDestination
 import com.skryg.checkersbluetooth.ui.screens.MainScreen
 import com.skryg.checkersbluetooth.ui.screens.SavedGamesDestination
@@ -30,7 +23,6 @@ import com.skryg.checkersbluetooth.ui.screens.SettingsScreen
 import com.skryg.checkersbluetooth.ui.screens.ThemeChangeDestination
 import com.skryg.checkersbluetooth.ui.screens.ThemeChangeScreen
 import com.skryg.checkersbluetooth.ui.utils.DefaultTopAppBar
-import com.skryg.checkersbluetooth.ui.utils.EmptyComposable
 import com.skryg.checkersbluetooth.ui.utils.MenuBottomBar
 
 
@@ -48,7 +40,8 @@ val navigationDestinations = mapOf(
     MainDestination.route to MainDestination,
     SavedGamesDestination.route to SavedGamesDestination,
     SettingsDestination.route to SettingsDestination,
-    ThemeChangeDestination.route to ThemeChangeDestination
+    ThemeChangeDestination.route to ThemeChangeDestination,
+    LocalGameDestination.route to LocalGameDestination
 )
 
 
@@ -76,7 +69,7 @@ fun Navigation() {
         Column(modifier = Modifier.padding(it)){
             NavHost(navController = navController, startDestination = MainDestination.route){
                 composable(MainDestination.route) {
-                    MainScreen()
+                    MainScreen(localGame = {navController.navigate(LocalGameDestination.route)} )
                 }
                 composable(SavedGamesDestination.route) {
                     SavedGamesScreen()
@@ -88,6 +81,9 @@ fun Navigation() {
                 }
                 composable(ThemeChangeDestination.route){
                     ThemeChangeScreen()
+                }
+                composable(LocalGameDestination.route){
+                    LocalGameScreen()
                 }
             }
         }
