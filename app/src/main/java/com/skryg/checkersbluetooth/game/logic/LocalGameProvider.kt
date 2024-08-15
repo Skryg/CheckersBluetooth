@@ -2,7 +2,6 @@ package com.skryg.checkersbluetooth.game.logic
 
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 import com.skryg.checkersbluetooth.game.ui.utils.Point
-import com.skryg.checkersbluetooth.game.ui.utils.plus
 import kotlinx.coroutines.flow.update
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +20,7 @@ class LocalGameProvider: GameProvider {
         val piecesList = ArrayList<PieceUi>()
         for (i in 0 until 2) {
             for (j in 0 until 8) {
-                if ((i % 2 + j) % 2 != 0){
+                if ((i + j) % 2 != 0){
                     board[i][j] = BoardPiece(isDark = true)
                     piecesList.add(PieceUi(isDark = true, point = Point(j,i)))
                 }
@@ -29,7 +28,7 @@ class LocalGameProvider: GameProvider {
         }
         for (i in 6 until 8) {
             for (j in 0 until 8) {
-                if ((i % 2 + j) % 2 != 0){
+                if ((i + j) % 2 != 0){
                     board[i][j] = BoardPiece(isDark = false)
                     piecesList.add(PieceUi(isDark = false, point = Point(j,i)))
                 }
@@ -147,6 +146,20 @@ class LocalGameProvider: GameProvider {
 
         val attacks = getAttacks(from)
         if(to in attacks){
+
+            val offset = (to-from)/(to-from).col
+            var f = from+offset
+            while(f!=to){
+                val (y,x) = f
+                val piece = board[x][y]
+                if(piece != null){
+                    _stateFlow.update{
+                        it.copy(pieces = it.pieces.filterNot { piece -> piece.point == f })
+                    }
+                    board[x][y]=null
+                }
+                f+=offset
+            }
 
             board[x2][y2] = board[x1][y1]
             board[x1][y1] = null

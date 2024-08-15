@@ -70,4 +70,47 @@ class LocalCheckersUnitTests {
             makeMove(Point(0, 5), Point(1, 4), false)
         }
     }
+
+    // black on (2,3), (4,3). white on (1,4) white turn
+    private fun attackSituation(){
+        makeMove(Point(1,6), Point(0,5), false)
+        makeMove(Point(0,1), Point(1, 2), true)
+        makeMove(Point(3,6), Point(2, 5), false)
+        makeMove(Point(1, 2), Point(2,3), true)
+        makeMove(Point(7,6), Point(6,5), false)
+        makeMove(Point(6, 1), Point(5,2), true)
+        makeMove(Point(2,5), Point(1,4), false)
+        makeMove(Point(5,2), Point(4,3), true)
+    }
+
+    @Test
+    fun movablesTest(){
+        attackSituation()
+        assertEquals(listOf(Point(1,4)), gameController.movablePieces())
+    }
+
+    @Test
+    fun movablesTwoTest(){
+        assertEquals(listOf(Point(1,6), Point(3,6), Point(5,6), Point(7,6)),
+            gameController.movablePieces())
+    }
+
+    @Test
+    fun movablesBlackTest(){
+        makeMove(Point(1,6), Point(0,5),false)
+        assertEquals(listOf(Point(0,1), Point(2,1,), Point(4,1),Point(6,1)),
+            gameController.movablePieces())
+    }
+
+    @Test
+    fun doubleAttackTest(){
+        attackSituation()
+        assertEquals(listOf(Point(3,2)), gameController.calculateMoves(Point(1,4)))
+        makeMove(Point(1,4), Point(3,2), false)
+        assertEquals(listOf(Point(5,4)), gameController.calculateMoves(Point(3,2)))
+        assertEquals(listOf(Point(3,2)), gameController.movablePieces())
+        makeMove(Point(3,2), Point (5,4), false)
+    }
+
+
 }
