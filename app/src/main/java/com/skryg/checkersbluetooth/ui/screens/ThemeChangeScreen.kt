@@ -17,11 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.skryg.checkersbluetooth.MainActivity
+import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.ui.theme.GameTheme
 import com.skryg.checkersbluetooth.game.ui.utils.Board
 import com.skryg.checkersbluetooth.game.ui.utils.LittleBoard
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
-import com.skryg.checkersbluetooth.game.ui.utils.Point
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
 import com.skryg.checkersbluetooth.ui.NavigationDestination
 

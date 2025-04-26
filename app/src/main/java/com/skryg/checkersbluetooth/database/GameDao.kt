@@ -11,17 +11,24 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GameDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(game: GameEntity)
+    suspend fun insert(game: GameEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(move: Move)
+    suspend fun insert(move: Move): Long
 
     @Query("SELECT * FROM games WHERE id = :id")
-    fun getGame(id: Long): Flow<GameEntity>
+    fun getGameFlow(id: Long): Flow<GameEntity>
+
+    @Query("SELECT * FROM games WHERE id = :id")
+    suspend fun getGame(id: Long): List<GameEntity>
 
     @Transaction
     @Query("SELECT * FROM games WHERE id = :id")
-    fun getGamesWithMoves(id: Long): Flow<GameWithMoves>
+    fun getGamesWithMovesFlow(id: Long): Flow<GameWithMoves>
+
+    @Transaction
+    @Query("SELECT * FROM games WHERE id = :id")
+    suspend fun getGamesWithMoves(id: Long): List<GameWithMoves>
 
     @Update
     suspend fun update(game: GameEntity)

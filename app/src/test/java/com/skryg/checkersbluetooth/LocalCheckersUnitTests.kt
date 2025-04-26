@@ -1,10 +1,9 @@
 package com.skryg.checkersbluetooth
 
-import com.skryg.checkersbluetooth.game.logic.GameControllerImpl
-import com.skryg.checkersbluetooth.game.logic.GameProvider
-import com.skryg.checkersbluetooth.game.logic.LocalGameProvider
+import com.skryg.checkersbluetooth.game.logic.model.Point
+import com.skryg.checkersbluetooth.game.services.GameControllerImpl
+import com.skryg.checkersbluetooth.game.services.GameProvider
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
-import com.skryg.checkersbluetooth.game.ui.utils.Point
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -13,9 +12,7 @@ import org.junit.Test
 
 class LocalCheckersUnitTests {
     private val gameController = GameControllerImpl()
-    init{
-        gameController.createGame(LocalGameProvider())
-    }
+
 
     @Test
     fun boardTest(){
@@ -23,7 +20,8 @@ class LocalCheckersUnitTests {
         val pieces = state.value.pieces
         assertEquals(pieces.size, 16)
 
-        val blackPoints = listOf(Point(1,0), Point(3,0), Point(5,0), Point(7,0),
+        val blackPoints = listOf(
+            Point(1,0), Point(3,0), Point(5,0), Point(7,0),
             Point(0,1), Point(2,1), Point(4,1), Point(6,1)
         )
         val whitePoints = listOf(Point(1,6), Point(3,6), Point(5,6), Point(7,6),

@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.skryg.checkersbluetooth.R
+import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.ui.utils.Board
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
 import com.skryg.checkersbluetooth.ui.AppViewModelProvider
@@ -48,11 +49,10 @@ object LocalGameDestination: NavigationDestination(
 @Composable
 fun LocalGameScreen(viewModel: LocalGameViewModel = viewModel(factory = AppViewModelProvider.Factory)){
     Column(Modifier.fillMaxSize()){
-        val playerState1 = viewModel.playerWhiteState.collectAsState()
-        val playerState2 = viewModel.playerBlackState.collectAsState()
-
-        LocalGameButtons(Modifier,{}, {},playerState2, rotated=true)
         val state = viewModel.gameUiState.collectAsState()
+        val playerState2 = PlayerState("Black", state.value.turn == Turn.BLACK)
+        val playerState1 = PlayerState("White", state.value.turn == Turn.WHITE)
+        LocalGameButtons(Modifier,{}, {},playerState2, rotated=true)
         Board(modifier = Modifier.weight(1f),state = state, boardUpdater = viewModel)
         LocalGameButtons(Modifier,{},{}, playerState1, rotated = false)
     }
@@ -63,7 +63,7 @@ fun LocalGameScreen(viewModel: LocalGameViewModel = viewModel(factory = AppViewM
 @Composable
 fun LocalGameButtons(modifier:Modifier=Modifier,
                      onClickDraw: ()->Unit, onClickResign: ()-> Unit,
-                     playerState: State<PlayerState>,
+                     playerState: PlayerState,
                      rotated: Boolean = false ){
     var modif = modifier.fillMaxWidth()
     if(rotated) modif = modif.rotate(180f)
@@ -97,10 +97,10 @@ fun LocalGameButtons(modifier:Modifier=Modifier,
         }
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             val icon = painterResource(id = R.drawable.baseline_games_24)
-            if(playerState.value.turn)
+            if(playerState.turn)
                 Icon(painter = icon, contentDescription = "Turn", tint = Color.Green)
             Spacer(modifier = Modifier.width(16.dp))
-            Text(playerState.value.name)
+            Text(playerState.name)
         }
 
     }
@@ -115,10 +115,10 @@ fun LocalGameScreenPreview(viewModel: LocalGameViewModel = viewModel(factory = A
         val playerState1 = remember { mutableStateOf(PlayerState(name = "Default")) }
         val playerState2 = remember { mutableStateOf(PlayerState(name = "Default", turn = false)) }
 
-        LocalGameButtons(Modifier,{}, {},playerState1, rotated=true)
+        LocalGameButtons(Modifier,{}, {},playerState1.value, rotated=true)
         val state = remember { mutableStateOf(UiState()) }
         Board(modifier = Modifier.weight(1f),state = state, boardUpdater = viewModel)
-        LocalGameButtons(Modifier,{},{}, playerState2, rotated = false)
+        LocalGameButtons(Modifier,{},{}, playerState2.value, rotated = false)
     }
 }
 

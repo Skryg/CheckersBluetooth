@@ -2,63 +2,61 @@ package com.skryg.checkersbluetooth.game.ui.local
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.skryg.checkersbluetooth.game.logic.GameController
-import com.skryg.checkersbluetooth.game.logic.LocalGameProvider
+import com.skryg.checkersbluetooth.game.logic.model.Point
+import com.skryg.checkersbluetooth.game.logic.model.Turn
+import com.skryg.checkersbluetooth.game.services.GameController
 import com.skryg.checkersbluetooth.game.ui.utils.BoardUpdater
-import com.skryg.checkersbluetooth.game.ui.utils.Point
+import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.ArrayList
 
-class LocalGameViewModel(private val gameController: GameController) : ViewModel(), BoardUpdater {
+class LocalGameViewModel(private val gameController: GameController, private var gid: Long =0) : ViewModel(), BoardUpdater {
     private val _gameUiState = MutableStateFlow(UiState())
     val gameUiState = _gameUiState.asStateFlow()
 
-    private val _playerWhiteState = MutableStateFlow(PlayerState(name = "Player White"))
-    private val _playerBlackState = MutableStateFlow(PlayerState(name = "Player Black", turn = false))
-    val playerWhiteState = _playerWhiteState.asStateFlow()
-    val playerBlackState = _playerBlackState.asStateFlow()
-
+    private val provider = gameController.getGame(gid)
 
     init {
-        gameController.createGame(LocalGameProvider())
-        viewModelScope.launch {
-            gameController.getGameState().collect {
-                _gameUiState.update { gameState ->
-                    if(it.pieces != gameState.pieces)
-                        gameState.copy(pieces = it.pieces)
-                    else gameState
-                }
-                if(_playerWhiteState.value.turn == it.turn){
-                    _playerWhiteState.update { whiteState->
-                        whiteState.copy(turn = !it.turn, name = it.white)
-                    }
-                    _playerBlackState.update{ blackState->
-                        blackState.copy(turn = it.turn, name = it.black)
-                    }
-                }
-                val movables = gameController.movablePieces()
-                _gameUiState.update { gameState ->
-                    gameState.copy(canMove = movables)
-                }
+        println("New GameViewModel")
+        if(provider != null){
+            viewModelScope.launch {
 
+                provider.getStateStreamer().getState().collect {
+                    _gameUiState.update { gameState ->
+                            val list = ArrayList<PieceUi>()
+
+                            it.board.forEach { point, piece ->
+                                if(piece != null) {
+                                    list.add(PieceUi(piece.color == Turn.BLACK, piece.king, point))
+                                }
+                            }
+                            val movables = provider.getMoveChecker().getMovables()
+
+                            gameState.copy(pieces = list, canMove = movables, turn = it.turn)
+                    }
+
+                }
             }
-        }
 
+        }
     }
 
-
     override fun updateSelected(point: Point?) {
-        val list = point?.let{gameController.calculateMoves(point)}
+        val list = point?.let{provider?.getMoveChecker()?.getMoves(point)}
         _gameUiState.update{
             it.copy(movePoints = list ?: emptyList())
         }
     }
 
-    override fun move(point1: Point, point2: Point) {
-        gameController.makeMove(point1, point2)
+    override suspend fun move(point1: Point, point2: Point) {
+        if(provider == null) return
+        val mover = if(provider.getStateStreamer().getState().value.turn == Turn.WHITE)
+            provider.getWhiteMover() else provider.getBlackMover()
+        mover.move(point1, point2)
     }
 }
 

@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.skryg.checkersbluetooth.MainActivity
+import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.ui.theme.GameTheme
 
 @Composable
@@ -54,7 +55,7 @@ fun Board(modifier:Modifier=Modifier,
             }
         ) {
         val sz = size.width/8
-        fun Point.toOffset() = Offset(col * sz, row * sz)
+        fun Point.toOffset() = Offset(x * sz, y * sz)
 
         for (i in 0 until 8) {
             for (j in 0 until 8) {
@@ -75,7 +76,7 @@ fun Board(modifier:Modifier=Modifier,
 fun LittleBoard(modifier: Modifier = Modifier,theme: GameTheme){
     Canvas(modifier){
         val sz = size.width/2
-        fun Point.toOffset() = Offset(col * sz, row * sz)
+        fun Point.toOffset() = Offset(x * sz, y * sz)
         for (i in 0 until 2){
             for (j in 0 until 2){
                 val offset = Offset(i * sz, j * sz)
