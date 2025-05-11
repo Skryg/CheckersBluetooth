@@ -3,23 +3,23 @@ package com.skryg.checkersbluetooth.game.logic.model
 import kotlin.concurrent.Volatile
 
 
-class GameState {
+data class GameState(
     @Volatile
-    var turn: Turn = Turn.WHITE
+    var turn: Turn = Turn.WHITE,
     @Volatile
-    var result: GameResult = GameResult.ONGOING
+    var result: GameResult = GameResult.ONGOING,
     @Volatile
-    var lastMove: Point? = null
-    val board: GameBoard = GameBoard()
-    val gameId: Long = -1
-    val nameWhite: String = "White"
-    val nameBlack: String = "Black"
+    var lastMove: Point? = null,
+    val board: MutableGameBoard = MutableGameBoard(),
+    val gameId: Long = -1,
+    val nameWhite: String = "White",
+    val nameBlack: String = "Black",
 
     @Volatile
-    private var drawWhite = false
+    private var drawWhite: Boolean = false,
     @Volatile
-    private var drawBlack = false
-
+    private var drawBlack: Boolean = false,
+){
     fun draw(color: Turn) {
         if (color == Turn.BLACK) {
             drawBlack = true
@@ -36,7 +36,29 @@ class GameState {
     fun canDraw(): Boolean {
         return drawWhite && drawBlack
     }
+
+    fun copy(): GameStateReadonly {
+        return GameStateReadonly(
+            turn = turn,
+            result = result,
+            lastMove = lastMove,
+            board = board as GameBoard,
+            gameId = gameId,
+            nameWhite = nameWhite,
+            nameBlack = nameBlack
+        )
+    }
 }
+
+data class GameStateReadonly(
+    val turn: Turn,
+    val result: GameResult,
+    val lastMove: Point?,
+    val board: GameBoard,
+    val gameId: Long,
+    val nameWhite: String,
+    val nameBlack: String
+){}
 
 enum class Turn {
     WHITE,
@@ -44,8 +66,8 @@ enum class Turn {
 }
 
 enum class GameResult{
+    ONGOING,
     WHITE_WON,
     BLACK_WON,
-    DRAW,
-    ONGOING
+    DRAW
 }

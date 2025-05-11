@@ -8,10 +8,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NamedNavArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.skryg.checkersbluetooth.CheckersApplication
+import com.skryg.checkersbluetooth.game.logic.core.standard.StandardGameCoreFactory
+import com.skryg.checkersbluetooth.game.ui.GameViewModelFactory
 import com.skryg.checkersbluetooth.game.ui.local.LocalGameDestination
 import com.skryg.checkersbluetooth.game.ui.local.LocalGameScreen
 import com.skryg.checkersbluetooth.ui.screens.MainDestination
@@ -24,14 +30,15 @@ import com.skryg.checkersbluetooth.ui.screens.ThemeChangeDestination
 import com.skryg.checkersbluetooth.ui.screens.ThemeChangeScreen
 import com.skryg.checkersbluetooth.ui.utils.DefaultTopAppBar
 import com.skryg.checkersbluetooth.ui.utils.MenuBottomBar
-
+import kotlinx.coroutines.runBlocking
 
 abstract class NavigationDestination(
     val route: String,
+    val arguments: List<NamedNavArgument> = emptyList(),
     val defaultTopBar: Boolean = true,
-    val topBarContent:  @Composable() () -> Unit = @Composable { },
+    val topBarContent:  @Composable () -> Unit = @Composable { },
     val defaultBottomBar: Boolean = true,
-    val bottomBarContent:  @Composable() () -> Unit = @Composable { },
+    val bottomBarContent:  @Composable () -> Unit = @Composable { },
     val icon: ImageVector? = null,
     val name: String = ""
 )
@@ -69,7 +76,23 @@ fun Navigation() {
         Column(modifier = Modifier.padding(it)){
             NavHost(navController = navController, startDestination = MainDestination.route){
                 composable(MainDestination.route) {
-                    MainScreen(localGame = {navController.navigate(LocalGameDestination.route)} )
+                    val app = (LocalContext.current.applicationContext as CheckersApplication)
+                    val gameController = app.container.gameController
+                    val repository = app.container.gameRepository
+                    val localGame = {
+                        runBlocking {
+                            val gameId = gameController.createGame(StandardGameCoreFactory(repository))
+//                            repository.getGame
+                            val route = LocalGameDestination.route.replace(Regex("\\{[^}]*\\}"),
+                                gameId.toString())
+                            println("Route: $route")
+                            navController.navigate(
+                                route
+                            )
+                        }
+                    }
+
+                    MainScreen(localGame = localGame)
                 }
                 composable(SavedGamesDestination.route) {
                     SavedGamesScreen()
@@ -82,8 +105,12 @@ fun Navigation() {
                 composable(ThemeChangeDestination.route){
                     ThemeChangeScreen()
                 }
-                composable(LocalGameDestination.route){
-                    LocalGameScreen()
+                composable(LocalGameDestination.route,
+                    arguments = LocalGameDestination.arguments){ backStackEntry ->
+                    val gameId = backStackEntry.arguments?.getLong("game_id")
+                    gameId?.let {
+                        LocalGameScreen(navController, viewModel(factory = GameViewModelFactory(gameId)))
+                    }
                 }
             }
         }

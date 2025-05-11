@@ -65,8 +65,6 @@ fun ThemeChangeScreen(){
             if((i + j)%2 == 1) pieces.add(PieceUi(isDark = false, point = Point(j,i)))
         }
     }
-
     val state = remember{ mutableStateOf(UiState(pieces = pieces))}
     Board(state = state, theme = theme.value!!)
-
 }

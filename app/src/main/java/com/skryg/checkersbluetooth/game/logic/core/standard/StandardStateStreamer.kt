@@ -4,25 +4,40 @@ import com.skryg.checkersbluetooth.database.GameRepository
 import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
 import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.GameState
+import com.skryg.checkersbluetooth.game.logic.model.GameStateReadonly
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
-class StandardStateStreamer(private val state: GameState, private val repository: GameRepository? = null): StateStreamer {
-    private val mutableStateFlow = MutableStateFlow(state)
+class StandardStateStreamer(private val state: GameState,
+                            private val repository: GameRepository? = null)
+    : StateStreamer {
+    private val mutableStateFlow = MutableStateFlow(state.copy())
 
     private suspend fun endGame(winner: Int){
         val game = repository?.getGame(state.gameId)
         game?.copy(ended = true, winner = winner)?.let { repository?.insert(it) }
     }
 
-    override fun getState(): StateFlow<GameState> {
+    override fun getStateFlow(): StateFlow<GameStateReadonly> {
         return mutableStateFlow.asStateFlow()
     }
 
     override fun update() {
-        mutableStateFlow.tryEmit(state)
+        println("Updating state streamer")
+        mutableStateFlow.update {
+            it.copy(
+                turn = state.turn,
+                result = state.result,
+                lastMove = state.lastMove,
+                board = state.board,
+                gameId = state.gameId,
+                nameWhite = state.nameWhite,
+                nameBlack = state.nameBlack
+            )
+        }
     }
 
     override suspend fun setWin(color: Turn) {
@@ -32,6 +47,8 @@ class StandardStateStreamer(private val state: GameState, private val repository
             else
                 GameResult.WHITE_WON
             endGame(state.result.ordinal)
+
+            update()
         }
     }
 
@@ -39,6 +56,8 @@ class StandardStateStreamer(private val state: GameState, private val repository
         if(state.result == GameResult.ONGOING) {
             state.result = GameResult.DRAW
             endGame(state.result.ordinal)
+
+            update()
         }
     }
 }

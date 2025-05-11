@@ -14,29 +14,37 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class LocalGameViewModel(private val gameController: GameController, private var gid: Long =0) : ViewModel(), BoardUpdater {
+class LocalGameViewModel(private val gameController: GameController, private val gid: Long =0) : ViewModel(), BoardUpdater {
     private val _gameUiState = MutableStateFlow(UiState())
     val gameUiState = _gameUiState.asStateFlow()
 
     private val provider = gameController.getGame(gid)
 
     init {
+        println("Provider: $provider, gameId: $gid")
         println("New GameViewModel")
         if(provider != null){
             viewModelScope.launch {
-
-                provider.getStateStreamer().getState().collect {
+                println("LAUNCH VIEWMODEL SCOPE")
+                provider.getStateStreamer().getStateFlow().collect {
+                    println("COLLECTING STATE FLOW")
                     _gameUiState.update { gameState ->
-                            val list = ArrayList<PieceUi>()
+                        println("Updating game state")
+                        val list = ArrayList<PieceUi>()
 
-                            it.board.forEach { point, piece ->
-                                if(piece != null) {
-                                    list.add(PieceUi(piece.color == Turn.BLACK, piece.king, point))
-                                }
+                        it.board.forEach { point, piece ->
+                            if(piece != null) {
+                                list.add(PieceUi(piece.color == Turn.BLACK, piece.king, point))
                             }
-                            val movables = provider.getMoveChecker().getMovables()
+                        }
+                        val movables = provider.getMoveChecker().getMovables()
 
-                            gameState.copy(pieces = list, canMove = movables, turn = it.turn)
+                        return@update gameState.copy(
+                            pieces = list,
+                            canMove = movables,
+                            turn = it.turn,
+                            result = it.result
+                        )
                     }
 
                 }
@@ -53,10 +61,12 @@ class LocalGameViewModel(private val gameController: GameController, private var
     }
 
     override suspend fun move(point1: Point, point2: Point) {
-        if(provider == null) return
-        val mover = if(provider.getStateStreamer().getState().value.turn == Turn.WHITE)
-            provider.getWhiteMover() else provider.getBlackMover()
-        mover.move(point1, point2)
+        viewModelScope.launch {
+            if(provider == null) return@launch
+            val mover = if(provider.getStateStreamer().getStateFlow().value.turn == Turn.WHITE)
+                provider.getWhiteMover() else provider.getBlackMover()
+            mover.move(point1, point2)
+        }
     }
 }
 

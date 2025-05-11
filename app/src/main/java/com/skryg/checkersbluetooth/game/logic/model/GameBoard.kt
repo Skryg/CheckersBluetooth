@@ -1,22 +1,40 @@
 package com.skryg.checkersbluetooth.game.logic.model
 
-class GameBoard {
-    private val board: Array<Array<Piece?>> = Array(8){Array(8){null}}
+open class GameBoard {
+    protected val size = 8
+    protected val board: Array<Piece?> = Array(size*size){null}
 
     fun getPiece(point: Point): Piece? {
-        return board[point.x][point.y];
-    }
-
-    fun setPiece(point: Point, piece: Piece? = null) {
-        board[point.x][point.y] = piece
+        return board[point.x*size+point.y];
     }
 
     fun forEach( fn: (point: Point, piece: Piece? ) -> Unit) {
-        board.forEachIndexed { x, arr ->
-            arr.forEachIndexed { y, piece ->
-                fn(Point(x,y), piece)
-            }
+        board.forEachIndexed { idx, piece ->
+
+            fn(Point(idx/8,idx%8), piece)
+
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GameBoard
+
+        return board.contentEquals(other.board)
+    }
+
+    override fun hashCode(): Int {
+        var result = size
+        result = 31 * result + board.contentHashCode()
+        return result
+    }
+}
+
+class MutableGameBoard: GameBoard() {
+    fun setPiece(point: Point, piece: Piece? = null) {
+        board[point.x*size + point.y] = piece
     }
 }
 

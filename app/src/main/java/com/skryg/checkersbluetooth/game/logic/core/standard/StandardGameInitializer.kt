@@ -3,6 +3,7 @@ package com.skryg.checkersbluetooth.game.logic.core.standard
 import com.skryg.checkersbluetooth.database.GameRepository
 import com.skryg.checkersbluetooth.game.logic.core.GameInitializer
 import com.skryg.checkersbluetooth.game.logic.core.MoveChecker
+import com.skryg.checkersbluetooth.game.logic.core.MoveStage
 import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.GameState
 import com.skryg.checkersbluetooth.game.logic.model.Piece
@@ -12,7 +13,8 @@ import com.skryg.checkersbluetooth.game.logic.model.toPoint
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 
 class StandardGameInitializer(private val state: GameState,
-                              private val moveChecker: MoveChecker,
+                              moveChecker: MoveChecker,
+                              private val stateStreamer: StandardStateStreamer,
                               private val repository: GameRepository? = null
 ) : GameInitializer {
     private val moverWrapper = InitializerMoverWrapper(moveChecker, state)
@@ -34,6 +36,8 @@ class StandardGameInitializer(private val state: GameState,
             }
         }
 
+        stateStreamer.update()
+
     }
 
     override suspend fun load(gid: Long) {
@@ -46,20 +50,37 @@ class StandardGameInitializer(private val state: GameState,
                 moverWrapper.move(move.from.toPoint(), move.to.toPoint())
             }
         }
+        stateStreamer.update()
     }
 
 }
 
-private class InitializerMoverWrapper(private val checker: MoveChecker,
-                                      private val state: GameState) {
-    private val stateStreamer = StandardStateStreamer(state)
-    private val whiteMover = StandardMover(Turn.WHITE, checker, state, stateStreamer)
-    private val blackMover = StandardMover(Turn.BLACK, checker, state, stateStreamer)
+private class InitializerMoverWrapper(checker: MoveChecker,
+                                      state: GameState) {
+    val handler: MoveStage
+
+    init {
+        val move = Move(state.board)
+        val switchTurn = SwitchTurn(state)
+        val terminalStage = TerminalStage()
+        val tryPromote = TryPromote(state.board)
+        val checkMoveAttack = CheckMove(checker, true)
+        val setLast = SetLast(state)
+        val resetLast = ResetLast(state)
+        val resetLast2 = ResetLast(state)
+
+        resetLast.setNext(listOf(move))
+        move.setNext(listOf(switchTurn, setLast))
+        setLast.setNext(listOf(checkMoveAttack))
+        checkMoveAttack.setNext(listOf(tryPromote, resetLast2))
+        resetLast2.setNext(listOf(switchTurn))
+        switchTurn.setNext(listOf(tryPromote))
+        tryPromote.setNext(listOf(terminalStage))
+        handler = resetLast
+    }
+
 
     suspend fun move(p1: Point, p2: Point): Boolean {
-        if(state.turn == Turn.WHITE) {
-            return whiteMover.move(p1, p2)
-        }
-        return blackMover.move(p1, p2)
+        return handler.handle(p1, p2)
     }
 }

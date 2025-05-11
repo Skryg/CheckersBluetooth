@@ -28,17 +28,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.navArgument
 import com.skryg.checkersbluetooth.R
+import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.ui.utils.Board
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
 import com.skryg.checkersbluetooth.ui.AppViewModelProvider
 import com.skryg.checkersbluetooth.ui.NavigationDestination
 import com.skryg.checkersbluetooth.ui.utils.DrawRequestDialog
+import com.skryg.checkersbluetooth.ui.utils.GameOverDialog
 import com.skryg.checkersbluetooth.ui.utils.ResignDialog
 
 object LocalGameDestination: NavigationDestination(
-    route = "local_game",
+    route = "local_game/{game_id}",
+    arguments = listOf(navArgument(name = "game_id") {
+        type = androidx.navigation.NavType.LongType
+    }),
     name = "Local Game",
     defaultTopBar = true,
     defaultBottomBar = false,
@@ -47,9 +54,19 @@ object LocalGameDestination: NavigationDestination(
 
 
 @Composable
-fun LocalGameScreen(viewModel: LocalGameViewModel = viewModel(factory = AppViewModelProvider.Factory)){
+fun LocalGameScreen(navController: NavHostController,
+                    viewModel: LocalGameViewModel = viewModel(factory = AppViewModelProvider.Factory)){
     Column(Modifier.fillMaxSize()){
         val state = viewModel.gameUiState.collectAsState()
+
+        state.value.result.let {
+            if (it != GameResult.ONGOING) {
+                GameOverDialog(it, navController) {
+                    // TODO("Start new game")
+                }
+            }
+        }
+
         val playerState2 = PlayerState("Black", state.value.turn == Turn.BLACK)
         val playerState1 = PlayerState("White", state.value.turn == Turn.WHITE)
         LocalGameButtons(Modifier,{}, {},playerState2, rotated=true)

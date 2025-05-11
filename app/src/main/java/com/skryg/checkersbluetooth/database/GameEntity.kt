@@ -13,7 +13,7 @@ data class GameEntity(
     val blackPlayer: String = "Black",
     val ended: Boolean = false,
     //white = 0, black = 1, draw = 2
-    val winner: Int = -1,
+    val winner: Int = 0,
     val creationTime: Long = System.currentTimeMillis()
 )
 

@@ -13,6 +13,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.skryg.checkersbluetooth.MainActivity
 import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.ui.theme.GameTheme
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun Board(modifier:Modifier=Modifier,
@@ -47,7 +49,11 @@ fun Board(modifier:Modifier=Modifier,
                     onTap = {
                         val newPoint = Point(it.x.div(sz).toInt(), it.y.div(sz).toInt())
                         if(newPoint in state.value.movePoints)
-                            point?.let {boardUpdater?.move(point!!, newPoint)}
+                            point?.let {
+                                runBlocking {
+                                    boardUpdater?.move(point!!, newPoint)
+                                }
+                            }
 
                         point = if(newPoint == point) null else newPoint
                         boardUpdater?.updateSelected(point)
