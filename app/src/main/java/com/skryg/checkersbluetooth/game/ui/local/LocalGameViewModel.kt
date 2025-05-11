@@ -68,6 +68,24 @@ class LocalGameViewModel(private val gameController: GameController, private val
             mover.move(point1, point2)
         }
     }
+
+    fun resign(color: Turn) {
+        viewModelScope.launch {
+            if(provider == null) return@launch
+            val mover = if(color == Turn.WHITE)
+                provider.getWhiteMover() else provider.getBlackMover()
+            mover.resign()
+        }
+    }
+
+    fun proposeDraw(color: Turn) {
+        viewModelScope.launch {
+            if(provider == null) return@launch
+            val mover = if(color == Turn.WHITE)
+                provider.getWhiteMover() else provider.getBlackMover()
+            mover.draw()
+        }
+    }
 }
 
 data class PlayerState(

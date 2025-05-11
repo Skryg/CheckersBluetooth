@@ -2,7 +2,7 @@ package com.skryg.checkersbluetooth.game.services
 
 import com.skryg.checkersbluetooth.game.logic.core.GameCoreFactory
 import com.skryg.checkersbluetooth.game.logic.core.MoveChecker
-import com.skryg.checkersbluetooth.game.logic.core.Mover
+import com.skryg.checkersbluetooth.game.logic.core.PlayerMover
 import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
 import kotlinx.coroutines.runBlocking
 
@@ -16,11 +16,11 @@ class GameProviderImpl(val id: Long, private val factory: GameCoreFactory): Game
         }
     }
 
-    override fun getWhiteMover(): Mover {
+    override fun getWhiteMover(): PlayerMover {
         return factory.getWhiteMover()
     }
 
-    override fun getBlackMover(): Mover {
+    override fun getBlackMover(): PlayerMover {
         return factory.getBlackMover()
     }
 

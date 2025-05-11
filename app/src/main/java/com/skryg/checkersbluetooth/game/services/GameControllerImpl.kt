@@ -6,6 +6,7 @@ import com.skryg.checkersbluetooth.game.logic.core.GameCoreFactory
 import com.skryg.checkersbluetooth.game.logic.exception.GameEndedException
 import com.skryg.checkersbluetooth.game.logic.exception.GameLoadException
 import com.skryg.checkersbluetooth.game.logic.exception.GameNotFoundException
+import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import java.util.TreeMap
 
 
@@ -27,10 +28,10 @@ class GameControllerImpl(private val repository: GameRepository? = null): GameCo
     }
 
     override suspend fun loadGame(gameCoreFactory: GameCoreFactory, id: Long) {
-        val gameEntity = repository?.getGamesWithMoves(id)
+        val gameEntity = repository?.getGame(id)
             ?: throw GameLoadException("Game couldn't be loaded", GameNotFoundException())
 
-        if (gameEntity.game.ended)
+        if (gameEntity.winner != GameResult.ONGOING)
             throw GameLoadException("Game couldn't be loaded", GameEndedException())
 
         games[id] = GameProviderImpl(id, gameCoreFactory)

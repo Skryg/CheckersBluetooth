@@ -4,6 +4,8 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.skryg.checkersbluetooth.game.logic.model.GameConnection
+import com.skryg.checkersbluetooth.game.logic.model.GameResult
 
 @Entity(tableName = "games")
 data class GameEntity(
@@ -11,9 +13,9 @@ data class GameEntity(
     val id: Long = 0,
     val whitePlayer: String = "White",
     val blackPlayer: String = "Black",
-    val ended: Boolean = false,
-    //white = 0, black = 1, draw = 2
-    val winner: Int = 0,
+    //ongoing = 0, white=1 black = 2, draw = 3
+    val winner: GameResult = GameResult.ONGOING,
+    val gameConnection: GameConnection = GameConnection.LOCAL,
     val creationTime: Long = System.currentTimeMillis()
 )
 

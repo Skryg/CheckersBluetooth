@@ -81,8 +81,15 @@ fun Navigation() {
                     val repository = app.container.gameRepository
                     val localGame = {
                         runBlocking {
-                            val gameId = gameController.createGame(StandardGameCoreFactory(repository))
-//                            repository.getGame
+                            val act = repository.getActiveLocalGames()
+                            val gameId: Long
+                            if(act.isNotEmpty()){
+                                gameId = act[0].id
+                                gameController.loadGame(StandardGameCoreFactory(repository), gameId)
+                            } else {
+                                gameId = gameController.createGame(StandardGameCoreFactory(repository))
+                            }
+
                             val route = LocalGameDestination.route.replace(Regex("\\{[^}]*\\}"),
                                 gameId.toString())
                             println("Route: $route")

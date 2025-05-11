@@ -22,13 +22,25 @@ interface GameDao {
     @Query("SELECT * FROM games WHERE id = :id")
     suspend fun getGame(id: Long): List<GameEntity>
 
-    @Transaction
-    @Query("SELECT * FROM games WHERE id = :id")
-    fun getGamesWithMovesFlow(id: Long): Flow<GameWithMoves>
+    @Query("SELECT * FROM games ORDER BY creationTime DESC")
+    suspend fun getAllGames(): List<GameEntity>
+
+    @Query("SELECT * FROM games " +
+            "WHERE gameConnection = 'LOCAL' AND winner = 'ONGOING' " +
+            "ORDER BY creationTime DESC")
+    suspend fun getActiveLocalGames(): List<GameEntity>
 
     @Transaction
     @Query("SELECT * FROM games WHERE id = :id")
-    suspend fun getGamesWithMoves(id: Long): List<GameWithMoves>
+    fun getGameWithMovesFlow(id: Long): Flow<GameWithMoves>
+
+    @Transaction
+    @Query("SELECT * FROM games WHERE id = :id")
+    suspend fun getGameWithMoves(id: Long): List<GameWithMoves>
+
+    @Transaction
+    @Query("SELECT * FROM games")
+    suspend fun getAllGamesWithMoves(): List<GameWithMoves>
 
     @Update
     suspend fun update(game: GameEntity)

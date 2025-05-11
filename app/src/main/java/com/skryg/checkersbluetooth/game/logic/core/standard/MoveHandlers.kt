@@ -4,7 +4,6 @@ import com.skryg.checkersbluetooth.database.GameRepository
 import com.skryg.checkersbluetooth.game.logic.core.MoveChecker
 import com.skryg.checkersbluetooth.game.logic.core.MoveStage
 import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
-import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.GameState
 import com.skryg.checkersbluetooth.game.logic.model.MutableGameBoard
 import com.skryg.checkersbluetooth.game.logic.model.Point
@@ -50,7 +49,7 @@ class TryPromote(private val board: MutableGameBoard) : MoveStage() {
 
 
 // If moved and it was not an attack then 0, else 1
-class Move(val board: MutableGameBoard) : MoveStage() {
+class PerformMove(val board: MutableGameBoard) : MoveStage() {
     override suspend fun handle(p1: Point, p2: Point): Boolean {
 
         board.getPiece(p1)?.let {
@@ -102,9 +101,9 @@ class SwitchTurn(private val state: GameState,
     }
 }
 
-class RepositorySave(private val repository: GameRepository) : MoveStage() {
+class RepositorySave(private val repository: GameRepository, private val state: GameState) : MoveStage() {
     override suspend fun handle(p1: Point, p2: Point): Boolean {
-        repository.insert(com.skryg.checkersbluetooth.database.Move(gameId = 0, from = p1.toString(), to = p2.toString()))
+        repository.insert(com.skryg.checkersbluetooth.database.Move(gameId = state.gameId, from = p1.toString(), to = p2.toString()))
         return handle(0,p1,p2)
     }
 }

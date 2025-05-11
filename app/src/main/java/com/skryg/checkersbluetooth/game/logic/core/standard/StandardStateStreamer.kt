@@ -16,9 +16,9 @@ class StandardStateStreamer(private val state: GameState,
     : StateStreamer {
     private val mutableStateFlow = MutableStateFlow(state.copy())
 
-    private suspend fun endGame(winner: Int){
+    private suspend fun endGame(winner: GameResult){
         val game = repository?.getGame(state.gameId)
-        game?.copy(ended = true, winner = winner)?.let { repository?.insert(it) }
+        game?.copy(winner = winner)?.let { repository?.insert(it) }
     }
 
     override fun getStateFlow(): StateFlow<GameStateReadonly> {
@@ -46,7 +46,7 @@ class StandardStateStreamer(private val state: GameState,
                 GameResult.BLACK_WON
             else
                 GameResult.WHITE_WON
-            endGame(state.result.ordinal)
+            endGame(state.result)
 
             update()
         }
@@ -55,7 +55,7 @@ class StandardStateStreamer(private val state: GameState,
     override suspend fun setDraw() {
         if(state.result == GameResult.ONGOING) {
             state.result = GameResult.DRAW
-            endGame(state.result.ordinal)
+            endGame(state.result)
 
             update()
         }

@@ -10,8 +10,9 @@ data class GameState(
     var result: GameResult = GameResult.ONGOING,
     @Volatile
     var lastMove: Point? = null,
+    @Volatile
+    var gameId: Long = -1,
     val board: MutableGameBoard = MutableGameBoard(),
-    val gameId: Long = -1,
     val nameWhite: String = "White",
     val nameBlack: String = "Black",
 
@@ -70,4 +71,9 @@ enum class GameResult{
     WHITE_WON,
     BLACK_WON,
     DRAW
+}
+
+enum class GameConnection{
+    LOCAL,
+    BLUETOOTH
 }

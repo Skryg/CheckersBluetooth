@@ -67,11 +67,23 @@ fun LocalGameScreen(navController: NavHostController,
             }
         }
 
+        val proposeDraw = {
+            viewModel.proposeDraw(Turn.WHITE)
+            viewModel.proposeDraw(Turn.BLACK)
+        }
+
+        val resignWhite = {
+            viewModel.resign(Turn.WHITE)
+        }
+        val resignBlack = {
+            viewModel.resign(Turn.BLACK)
+        }
+
         val playerState2 = PlayerState("Black", state.value.turn == Turn.BLACK)
         val playerState1 = PlayerState("White", state.value.turn == Turn.WHITE)
-        LocalGameButtons(Modifier,{}, {},playerState2, rotated=true)
+        LocalGameButtons(Modifier,proposeDraw,resignBlack,playerState2, rotated=true)
         Board(modifier = Modifier.weight(1f),state = state, boardUpdater = viewModel)
-        LocalGameButtons(Modifier,{},{}, playerState1, rotated = false)
+        LocalGameButtons(Modifier,proposeDraw,resignWhite, playerState1, rotated = false)
     }
 }
 

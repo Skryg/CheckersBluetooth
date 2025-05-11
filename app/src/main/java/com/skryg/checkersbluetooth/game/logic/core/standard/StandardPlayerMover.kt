@@ -1,6 +1,5 @@
 package com.skryg.checkersbluetooth.game.logic.core.standard
 
-import androidx.compose.material3.Switch
 import com.skryg.checkersbluetooth.database.GameRepository
 import com.skryg.checkersbluetooth.game.logic.core.MoveChecker
 import com.skryg.checkersbluetooth.game.logic.core.MoveStage
@@ -28,17 +27,17 @@ class StandardPlayerMover(private val turn: Turn,
         val checkMove = CheckMove(moveChecker)
         val checkMoveAttack = CheckMove(moveChecker, true)
         val tryPromote = TryPromote(gameState.board)
-        val move = Move(gameState.board)
+        val performMove = PerformMove(gameState.board)
         val switchTurn = SwitchTurn(gameState, moveChecker, stateStreamer)
-        val repositorySave = repository?.let { RepositorySave(it) }
+        val repositorySave = repository?.let { RepositorySave(it, gameState) }
         val terminalStage = TerminalStage()
         val resetLast2 = ResetLast(gameState)
 
         checkTurn.setNext(listOf(resetDraw))
         resetDraw.setNext(listOf(checkMove))
         checkMove.setNext(listOf(resetLast))
-        resetLast.setNext(listOf(move))
-        move.setNext(listOf(switchTurn, setLast))
+        resetLast.setNext(listOf(performMove))
+        performMove.setNext(listOf(switchTurn, setLast))
         setLast.setNext(listOf(checkMoveAttack))
         checkMoveAttack.setNext(listOf(tryPromote, resetLast2))
         resetLast2.setNext(listOf(switchTurn))

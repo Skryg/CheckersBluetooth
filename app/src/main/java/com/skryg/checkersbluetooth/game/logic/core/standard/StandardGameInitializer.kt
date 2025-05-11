@@ -4,7 +4,7 @@ import com.skryg.checkersbluetooth.database.GameRepository
 import com.skryg.checkersbluetooth.game.logic.core.GameInitializer
 import com.skryg.checkersbluetooth.game.logic.core.MoveChecker
 import com.skryg.checkersbluetooth.game.logic.core.MoveStage
-import com.skryg.checkersbluetooth.game.logic.model.GameResult
+import com.skryg.checkersbluetooth.game.logic.core.Mover
 import com.skryg.checkersbluetooth.game.logic.model.GameState
 import com.skryg.checkersbluetooth.game.logic.model.Piece
 import com.skryg.checkersbluetooth.game.logic.model.Point
@@ -41,11 +41,12 @@ class StandardGameInitializer(private val state: GameState,
     }
 
     override suspend fun load(gid: Long) {
+        state.gameId = gid
         if(repository == null)
             throw NullPointerException()
-        val entity = repository.getGamesWithMoves(gid)
+        val entity = repository.getGameWithMoves(gid)
         if (entity != null) {
-            state.result = GameResult.entries[entity.game.winner]
+            state.result = entity.game.winner
             for (move in entity.moves) {
                 moverWrapper.move(move.from.toPoint(), move.to.toPoint())
             }
@@ -56,11 +57,11 @@ class StandardGameInitializer(private val state: GameState,
 }
 
 private class InitializerMoverWrapper(checker: MoveChecker,
-                                      state: GameState) {
+                                      state: GameState): Mover {
     val handler: MoveStage
 
     init {
-        val move = Move(state.board)
+        val performMove = PerformMove(state.board)
         val switchTurn = SwitchTurn(state)
         val terminalStage = TerminalStage()
         val tryPromote = TryPromote(state.board)
@@ -69,8 +70,8 @@ private class InitializerMoverWrapper(checker: MoveChecker,
         val resetLast = ResetLast(state)
         val resetLast2 = ResetLast(state)
 
-        resetLast.setNext(listOf(move))
-        move.setNext(listOf(switchTurn, setLast))
+        resetLast.setNext(listOf(performMove))
+        performMove.setNext(listOf(switchTurn, setLast))
         setLast.setNext(listOf(checkMoveAttack))
         checkMoveAttack.setNext(listOf(tryPromote, resetLast2))
         resetLast2.setNext(listOf(switchTurn))
@@ -80,7 +81,7 @@ private class InitializerMoverWrapper(checker: MoveChecker,
     }
 
 
-    suspend fun move(p1: Point, p2: Point): Boolean {
+    override suspend fun move(p1: Point, p2: Point): Boolean {
         return handler.handle(p1, p2)
     }
 }
