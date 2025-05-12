@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -122,9 +123,35 @@ fun Navigation() {
                 }
                 composable(LocalGameDestination.route,
                     arguments = LocalGameDestination.arguments){ backStackEntry ->
+                    val app = (LocalContext.current.applicationContext as CheckersApplication)
+                    val gameController = app.container.gameController
+                    val repository = app.container.gameRepository
+
                     val gameId = backStackEntry.arguments?.getLong("game_id")
+
+                    val goMenu: ()->Unit = {
+                        navController.navigateUp()
+                    }
+
+                    val newGame: () -> Unit = {
+                        runBlocking {
+                            val newGameId = gameController.createGame(StandardGameCoreFactory(repository))
+                            gameController.loadGame(StandardGameCoreFactory(repository), newGameId)
+
+                            navController.navigate(
+                                LocalGameDestination.route.replace(Regex("\\{[^}]*\\}"),
+                                    newGameId.toString()),
+                                navOptions = NavOptions.Builder()
+                                    .setPopUpTo(
+                                        MainDestination.route,
+                                        inclusive = false
+                                    ).build()
+                            )
+                        }
+                    }
+
                     gameId?.let {
-                        LocalGameScreen(navController, gameId)
+                        LocalGameScreen(gameId, newGame, goMenu)
                     }
                 }
                 composable(

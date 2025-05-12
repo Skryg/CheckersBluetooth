@@ -68,6 +68,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.lifecycle.runtime.compose.android)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 

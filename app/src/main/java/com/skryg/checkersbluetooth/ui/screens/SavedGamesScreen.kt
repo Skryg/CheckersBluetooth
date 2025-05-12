@@ -8,6 +8,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -28,10 +31,12 @@ import com.skryg.checkersbluetooth.ui.NavigationDestination
 import com.skryg.checkersbluetooth.ui.utils.GameEntry
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 object SavedGamesDestination: NavigationDestination(
     route = "saved_games_screen",
     icon = Icons.Default.Menu,
     defaultTopBar = false,
+    topBarContent = @Composable { TopAppBar(title = { Text("Saved Games") }) },
     name = "Saved Games"
 )
 
@@ -45,8 +50,6 @@ fun SavedGamesScreen(viewModel: SavedGamesViewModel
 
 @Composable
 fun SavedGamesList(games: List<GameEntity>? = null, onGameClick: (GameEntity)->Unit = {}){
-//    repository.getAllGames()
-    val save by rememberSaveable { mutableStateOf(true) }
 
     if(games == null) {
         Column(

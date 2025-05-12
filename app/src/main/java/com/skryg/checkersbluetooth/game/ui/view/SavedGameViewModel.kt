@@ -2,22 +2,16 @@ package com.skryg.checkersbluetooth.game.ui.view
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.skryg.checkersbluetooth.database.GameEntity
 import com.skryg.checkersbluetooth.database.GameRepository
-import com.skryg.checkersbluetooth.database.GameWithMoves
 import com.skryg.checkersbluetooth.database.Move
-import com.skryg.checkersbluetooth.game.logic.core.GameCoreFactory
-import com.skryg.checkersbluetooth.game.logic.core.GameInitializer
 import com.skryg.checkersbluetooth.game.logic.core.PieceInitializer
-import com.skryg.checkersbluetooth.game.logic.core.standard.StandardGameCoreFactory
 import com.skryg.checkersbluetooth.game.logic.core.standard.StandardPieceInitializer
 import com.skryg.checkersbluetooth.game.logic.model.toPoint
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
-import com.skryg.checkersbluetooth.game.ui.utils.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

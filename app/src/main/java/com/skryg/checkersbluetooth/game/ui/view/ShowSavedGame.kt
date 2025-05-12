@@ -122,8 +122,6 @@ data class ButtonsData(
             enabled = data.movePointer > data.minMove
         ) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, "Previous")
-            Spacer(Modifier.width(8.dp))
-            Text("Previous")
         }
 
         Text(
@@ -135,8 +133,7 @@ data class ButtonsData(
             onClick = data.nextOnClick,
             enabled = data.movePointer < data.maxMove
         ) {
-            Spacer(Modifier.width(8.dp))
-            Text("Next")
+
             Icon(Icons.AutoMirrored.Filled.ArrowForward, "Next")
 
         }

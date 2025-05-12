@@ -68,10 +68,7 @@ fun ResignDialog(onAccept: () -> Unit, onDecline: () -> Unit, rotated: Boolean =
 }
 
 @Composable
-fun GameOverDialog(result: GameResult, navController: NavController, newGame: ()->Unit = {}){
-    val goMenu: () -> Unit = {
-        navController.navigateUp()
-    }
+fun GameOverDialog(result: GameResult, newGame: ()->Unit = {}, goMenu: ()-> Unit = {}){
 
     Dialog(onDismissRequest = goMenu){
         val modifier = Modifier
@@ -97,7 +94,7 @@ fun GameOverDialog(result: GameResult, navController: NavController, newGame: ()
                 TextButton(onClick = newGame) {
                     Text("New game")
                 }
-                TextButton(onClick = { navController.navigateUp() }){
+                TextButton(onClick = goMenu){
                     Text("Go to menu")
                 }
             }
@@ -108,5 +105,5 @@ fun GameOverDialog(result: GameResult, navController: NavController, newGame: ()
 @Preview
 @Composable
 fun DrawRequestDialogPreview(){
-    GameOverDialog(GameResult.WHITE_WON, rememberNavController()) { }
+    GameOverDialog(GameResult.WHITE_WON) { }
 }

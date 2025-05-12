@@ -27,6 +27,9 @@ fun MenuBottomBar(navController: NavHostController) {
                 selected = currentRoute == destination.route,
                 onClick = {
                     navController.navigate(destination.route) {
+                        popUpTo(MainDestination.route, {
+                            inclusive = false
+                        })
                         launchSingleTop = true
                     }
                 }

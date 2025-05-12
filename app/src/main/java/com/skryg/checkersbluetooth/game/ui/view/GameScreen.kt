@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.navArgument
@@ -52,17 +53,14 @@ object LocalGameDestination: NavigationDestination(
 
 
 @Composable
-fun LocalGameScreen(navController: NavHostController,
-                    gameId: Long){
+fun LocalGameScreen(gameId: Long, newGame: () -> Unit, goMenu: () -> Unit){
     val viewModel: LocalGameViewModel = viewModel(factory = GameViewModelFactory(gameId))
     Column(Modifier.fillMaxSize()){
-        val state = viewModel.gameUiState.collectAsState()
+        val state by viewModel.gameUiState.collectAsStateWithLifecycle()
 
-        state.value.result.let {
+        state.result.let {
             if (it != GameResult.ONGOING) {
-                GameOverDialog(it, navController) {
-                    // TODO("Start new game")
-                }
+                GameOverDialog(it, newGame, goMenu)
             }
         }
 
@@ -78,10 +76,10 @@ fun LocalGameScreen(navController: NavHostController,
             viewModel.resign(Turn.BLACK)
         }
 
-        val playerState2 = PlayerState("Black", state.value.turn == Turn.BLACK)
-        val playerState1 = PlayerState("White", state.value.turn == Turn.WHITE)
+        val playerState2 = PlayerState("Black", state.turn == Turn.BLACK)
+        val playerState1 = PlayerState("White", state.turn == Turn.WHITE)
         LocalGameButtons(Modifier,proposeDraw,resignBlack,playerState2, rotated=true)
-        Board(modifier = Modifier.weight(1f),state = state.value, boardUpdater = viewModel)
+        Board(modifier = Modifier.weight(1f),state = state, boardUpdater = viewModel)
         LocalGameButtons(Modifier,proposeDraw,resignWhite, playerState1, rotated = false)
     }
 }

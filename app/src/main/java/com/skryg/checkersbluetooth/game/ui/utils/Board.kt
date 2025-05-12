@@ -1,5 +1,6 @@
 package com.skryg.checkersbluetooth.game.ui.utils
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +26,8 @@ import com.skryg.checkersbluetooth.MainActivity
 import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.ui.theme.GameTheme
 import kotlinx.coroutines.runBlocking
+import java.util.logging.Logger
+
 
 @Composable
 fun Board(modifier:Modifier=Modifier,
@@ -33,6 +36,8 @@ fun Board(modifier:Modifier=Modifier,
           theme: GameTheme = MainActivity.gameTheme.value!!
 ) {
     var point by remember { mutableStateOf(null as Point?) }
+    val stateWrapper = remember { StateWrapper(state) }
+    stateWrapper.value = state
 
     Canvas(
         modifier
@@ -45,9 +50,11 @@ fun Board(modifier:Modifier=Modifier,
                 detectTapGestures(
                     onTap = {
                         val newPoint = Point(it.x.div(sz).toInt(), it.y.div(sz).toInt())
-                        if(newPoint in state.movePoints)
+
+                        if(newPoint in stateWrapper.value.movePoints)
                             point?.let {
                                 runBlocking {
+                                    Logger.getLogger("Board").info("Moving $it to $newPoint")
                                     boardUpdater?.move(point!!, newPoint)
                                 }
                             }
@@ -74,6 +81,10 @@ fun Board(modifier:Modifier=Modifier,
         state.canMove.forEach { drawMovable(it.toOffset(), Size(sz, sz)) }
     }
 }
+
+private data class StateWrapper(
+    var value: UiState = UiState()
+)
 
 @Composable
 fun LittleBoard(modifier: Modifier = Modifier,

@@ -48,8 +48,8 @@ fun GameEntry(game: GameEntity, onClick:(GameEntity)->Unit = {}) {
             .padding(vertical = 8.dp, horizontal = 16.dp)
             .clickable { onClick(game) },
         colors = CardDefaults.cardColors(
-            containerColor = if (game.winner != GameResult.ONGOING)
-                Color(0xFFE0E0E0) else Color(0xFFF5F5F5)
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+
         )
     ) {
         Row(
@@ -61,15 +61,14 @@ fun GameEntry(game: GameEntity, onClick:(GameEntity)->Unit = {}) {
             LittleBoard(
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    ,
+                    .clip(RoundedCornerShape(8.dp)),
                 pieceList = pieces
 
             )
 
             Column(
                 modifier = Modifier.weight(0.8f)
-                    .padding(start=8.dp)
+                    .padding(start=16.dp)
             ) {
                 Text(
                     text = if (game.gameConnection == GameConnection.BLUETOOTH)
