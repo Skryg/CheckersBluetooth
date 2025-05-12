@@ -1,26 +1,38 @@
 package com.skryg.checkersbluetooth.game.ui.view
 
+import android.media.AudioAttributes
+import android.media.SoundPool
+import android.provider.MediaStore.Audio
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.services.GameController
 import com.skryg.checkersbluetooth.game.ui.utils.BoardUpdater
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
+import com.skryg.checkersbluetooth.sound.GameSounds
+import com.skryg.checkersbluetooth.sound.Sound
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class LocalGameViewModel(gameController: GameController, gid: Long =0) : ViewModel(), BoardUpdater {
+class LocalGameViewModel(gameController: GameController, gid: Long = 0, gameSounds: GameSounds? = null)
+    : ViewModel(), BoardUpdater {
     private val _gameUiState = MutableStateFlow(UiState())
     val gameUiState = _gameUiState.asStateFlow()
 
     private val provider = gameController.getGame(gid)
 
     init {
+        gameSounds?.load(Sound.MOVE)
+        gameSounds?.load(Sound.WIN)
+        gameSounds?.load(Sound.LOSE)
+
         println("Provider: $provider, gameId: $gid")
         println("New GameViewModel")
         if(provider != null){
@@ -39,13 +51,27 @@ class LocalGameViewModel(gameController: GameController, gid: Long =0) : ViewMod
                         }
                         val movables = provider.getMoveChecker().getMovables()
 
+                        when (it.result) {
+                            GameResult.WHITE_WON, GameResult.BLACK_WON -> {
+                                gameSounds?.play(Sound.WIN)
+                            }
+                            GameResult.DRAW -> {
+                                gameSounds?.play(Sound.LOSE)
+                            }
+                            GameResult.ONGOING -> {
+                                gameSounds?.play(Sound.MOVE)
+                            }
+                        }
+
                         return@update gameState.copy(
                             pieces = list,
                             canMove = movables,
                             turn = it.turn,
                             result = it.result
                         )
+
                     }
+
 
                 }
             }

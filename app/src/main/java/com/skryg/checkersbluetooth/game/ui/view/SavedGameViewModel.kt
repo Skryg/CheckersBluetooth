@@ -12,6 +12,8 @@ import com.skryg.checkersbluetooth.game.logic.core.PieceInitializer
 import com.skryg.checkersbluetooth.game.logic.core.standard.StandardPieceInitializer
 import com.skryg.checkersbluetooth.game.logic.model.toPoint
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
+import com.skryg.checkersbluetooth.sound.GameSounds
+import com.skryg.checkersbluetooth.sound.Sound
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -20,7 +22,8 @@ import kotlinx.coroutines.launch
 
 class SavedGameViewModel(repository: GameRepository,
                          gid: Long,
-                         pieceInitializer: PieceInitializer = StandardPieceInitializer())
+                         pieceInitializer: PieceInitializer = StandardPieceInitializer(),
+                         private val gameSounds: GameSounds? = null)
     : ViewModel() {
     private lateinit var movesList: List<Move>
     private var movePointer = 0
@@ -39,6 +42,7 @@ class SavedGameViewModel(repository: GameRepository,
     )
 
     init {
+        gameSounds?.load(Sound.MOVE)
         viewModelScope.launch {
             val gameWithMoves = repository.getGameWithMoves(gid)
 
@@ -72,6 +76,7 @@ class SavedGameViewModel(repository: GameRepository,
                     }
                 }, movePointer = movePointer)
             }
+            gameSounds?.play(Sound.MOVE)
         }
     }
 
@@ -91,6 +96,7 @@ class SavedGameViewModel(repository: GameRepository,
                     }
                 }, movePointer = movePointer)
             }
+            gameSounds?.play(Sound.MOVE)
         }
     }
 }

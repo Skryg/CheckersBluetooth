@@ -11,12 +11,18 @@ import com.skryg.checkersbluetooth.ui.checkersApplication
 class GameViewModelFactory(private val gameId: Long): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(LocalGameViewModel::class.java)) {
-            val gameController = extras.checkersApplication().container.gameController
-            return LocalGameViewModel(gameController, gameId) as T
+            val app = extras.checkersApplication()
+            val gameController = app.container.gameController
+            val gameSounds = app.gameSounds
+
+            return LocalGameViewModel(gameController, gameId, gameSounds) as T
         }
         if(modelClass.isAssignableFrom(SavedGameViewModel::class.java)) {
-            val repository = extras.checkersApplication().container.gameRepository
-            return SavedGameViewModel(repository, gameId) as T
+            val app = extras.checkersApplication()
+            val repository = app.container.gameRepository
+            val gameSounds = app.gameSounds
+
+            return SavedGameViewModel(repository, gameId, gameSounds=gameSounds) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

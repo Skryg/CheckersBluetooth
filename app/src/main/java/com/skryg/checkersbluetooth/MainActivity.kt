@@ -1,6 +1,7 @@
 package com.skryg.checkersbluetooth
 
 import android.content.Context
+import android.media.SoundPool
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +24,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         val sharedPrefs = this.getPreferences(Context.MODE_PRIVATE)
         val themeStr = getString(R.string.game_theme)
