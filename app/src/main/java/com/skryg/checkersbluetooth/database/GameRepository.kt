@@ -13,5 +13,6 @@ interface GameRepository {
     suspend fun getAllGamesWithMoves(): List<GameWithMoves>
 
     fun getGameFlow(id: Long): Flow<GameEntity>
+    fun getAllGamesFlow(): Flow<List<GameEntity>>
     fun getGamesWithMovesFlow(id: Long): Flow<GameWithMoves>
 }

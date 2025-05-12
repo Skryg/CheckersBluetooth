@@ -5,12 +5,12 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.skryg.checkersbluetooth.CheckersApplication
-import com.skryg.checkersbluetooth.game.ui.local.LocalGameViewModel
+import com.skryg.checkersbluetooth.ui.screens.SavedGamesViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
-            LocalGameViewModel(checkersApplication().container.gameController)
+            SavedGamesViewModel(checkersApplication().container.gameRepository)
         }
     }
 }

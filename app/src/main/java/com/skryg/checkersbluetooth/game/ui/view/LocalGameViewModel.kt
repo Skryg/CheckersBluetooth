@@ -1,4 +1,4 @@
-package com.skryg.checkersbluetooth.game.ui.local
+package com.skryg.checkersbluetooth.game.ui.view
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class LocalGameViewModel(private val gameController: GameController, private val gid: Long =0) : ViewModel(), BoardUpdater {
+class LocalGameViewModel(gameController: GameController, gid: Long =0) : ViewModel(), BoardUpdater {
     private val _gameUiState = MutableStateFlow(UiState())
     val gameUiState = _gameUiState.asStateFlow()
 

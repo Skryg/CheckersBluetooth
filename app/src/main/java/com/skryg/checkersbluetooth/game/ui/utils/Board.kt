@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -30,12 +28,11 @@ import kotlinx.coroutines.runBlocking
 
 @Composable
 fun Board(modifier:Modifier=Modifier,
-          state: State<UiState>,
+          state: UiState,
           boardUpdater: BoardUpdater? = null,
           theme: GameTheme = MainActivity.gameTheme.value!!
 ) {
     var point by remember { mutableStateOf(null as Point?) }
-    val uiState = state.value
 
     Canvas(
         modifier
@@ -48,7 +45,7 @@ fun Board(modifier:Modifier=Modifier,
                 detectTapGestures(
                     onTap = {
                         val newPoint = Point(it.x.div(sz).toInt(), it.y.div(sz).toInt())
-                        if(newPoint in state.value.movePoints)
+                        if(newPoint in state.movePoints)
                             point?.let {
                                 runBlocking {
                                     boardUpdater?.move(point!!, newPoint)
@@ -60,26 +57,30 @@ fun Board(modifier:Modifier=Modifier,
                     })
             }
         ) {
-        val sz = size.width/8
+        val sz = size.width / 8
         fun Point.toOffset() = Offset(x * sz, y * sz)
 
         for (i in 0 until 8) {
             for (j in 0 until 8) {
                 val offset = Offset(i * sz, j * sz)
-                drawSquare(isDark = (i % 2 + j) % 2 != 0, offset, Size(sz, sz),theme)
+                drawSquare(isDark = (i % 2 + j) % 2 != 0, offset, Size(sz, sz), theme)
             }
         }
-        uiState.pieces.forEach { piece ->
-            drawPiece(piece.isDark, piece.isKing, piece.point.toOffset(), Size(sz, sz),theme)
+        state.pieces.forEach { piece ->
+            drawPiece(piece.isDark, piece.isKing, piece.point.toOffset(), Size(sz, sz), theme)
         }
-        point?.let{ drawSelect(it.toOffset(), Size(sz, sz)) }
-        uiState.movePoints.forEach { drawMoveOption(it.toOffset(), Size(sz, sz)) }
-        uiState.canMove.forEach { drawMovable(it.toOffset(), Size(sz, sz)) }
+        point?.let { drawSelect(it.toOffset(), Size(sz, sz)) }
+        state.movePoints.forEach { drawMoveOption(it.toOffset(), Size(sz, sz)) }
+        state.canMove.forEach { drawMovable(it.toOffset(), Size(sz, sz)) }
     }
 }
 
 @Composable
-fun LittleBoard(modifier: Modifier = Modifier,theme: GameTheme){
+fun LittleBoard(modifier: Modifier = Modifier,
+                theme: GameTheme = MainActivity.gameTheme.value!!,
+                pieceList :List<PieceUi> = listOf(
+                    PieceUi(point = Point(0,1)),
+                    PieceUi(point = Point(1,0), isDark = true))){
     Canvas(modifier){
         val sz = size.width/2
         fun Point.toOffset() = Offset(x * sz, y * sz)
@@ -88,20 +89,10 @@ fun LittleBoard(modifier: Modifier = Modifier,theme: GameTheme){
                 val offset = Offset(i * sz, j * sz)
                 drawSquare(isDark = (i % 2 + j) % 2 != 0, offset, Size(sz, sz), theme)
             }
-            drawPiece(
-                isDark = false,
-                isKing = false,
-                offset = Point(0,1).toOffset(),
-                sqSize = Size(sz, sz),
-                theme = theme
-            )
 
-            drawPiece(true,
-                isKing = false,
-                offset = Point(1,0).toOffset(),
-                sqSize = Size(sz, sz),
-                theme = theme
-            )
+            pieceList.forEach() { piece ->
+                drawPiece(piece.isDark, piece.isKing, piece.point.toOffset(), Size(sz, sz), theme)
+            }
         }
     }
 }
@@ -171,7 +162,7 @@ private fun DrawScope.drawMoveOption(offset: Offset, sqSize: Size){
 fun Test() {
     Column(Modifier.fillMaxSize().background(MainActivity.gameTheme.value!!.backgroundColor)){
         val state = remember { mutableStateOf(UiState())}
-        Board(state=state)
+        Board(state=state.value)
 
     }
 }

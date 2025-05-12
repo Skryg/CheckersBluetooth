@@ -23,6 +23,13 @@ enum class GameTheme(
         darkPieceColor = Color(0xFFC40505),
         lightPieceColor = Color(0xFFE6A5A5),
     ),
+    Green (
+        backgroundColor = Color(0xFF85FF85),
+        darkSquareColor = Color(0xFF002E00),
+        lightSquareColor = Color(0xFFD4E3D7),
+        darkPieceColor = Color(0xFF0D8B04),
+        lightPieceColor = Color(0xFFA2FF94),
+    ),
     Blue(
         backgroundColor = Color(0xFF6295FF),
         darkSquareColor = Color(0xFF06163F),

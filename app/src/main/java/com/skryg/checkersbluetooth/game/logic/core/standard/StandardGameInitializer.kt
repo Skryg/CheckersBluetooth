@@ -18,26 +18,17 @@ class StandardGameInitializer(private val state: GameState,
                               private val repository: GameRepository? = null
 ) : GameInitializer {
     private val moverWrapper = InitializerMoverWrapper(moveChecker, state)
+    private val pieceInitializer = StandardPieceInitializer()
 
     override suspend fun initialize() {
-        val piecesList = ArrayList<PieceUi>()
-        for (y in 0 until 2) {
-            for (x in 0 until 8) {
-                if ((x + y) % 2 != 0){
-                    state.board.setPiece(Point(x,y), Piece(Turn.BLACK))
-                }
-            }
-        }
-        for (y in 6 until 8) {
-            for (x in 0 until 8) {
-                if ((x + y) % 2 != 0){
-                    state.board.setPiece(Point(x,y), Piece(Turn.WHITE))
-                }
-            }
+        pieceInitializer.initialize().forEach {
+            state.board.setPiece(
+                it.point,
+                Piece(if (it.isDark) Turn.BLACK else Turn.WHITE)
+            )
         }
 
         stateStreamer.update()
-
     }
 
     override suspend fun load(gid: Long) {

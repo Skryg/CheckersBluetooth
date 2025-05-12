@@ -18,8 +18,10 @@ import androidx.navigation.compose.rememberNavController
 import com.skryg.checkersbluetooth.CheckersApplication
 import com.skryg.checkersbluetooth.game.logic.core.standard.StandardGameCoreFactory
 import com.skryg.checkersbluetooth.game.ui.GameViewModelFactory
-import com.skryg.checkersbluetooth.game.ui.local.LocalGameDestination
-import com.skryg.checkersbluetooth.game.ui.local.LocalGameScreen
+import com.skryg.checkersbluetooth.game.ui.view.LocalGameDestination
+import com.skryg.checkersbluetooth.game.ui.view.LocalGameScreen
+import com.skryg.checkersbluetooth.game.ui.view.SavedGameDestination
+import com.skryg.checkersbluetooth.game.ui.view.ShowSavedGame
 import com.skryg.checkersbluetooth.ui.screens.MainDestination
 import com.skryg.checkersbluetooth.ui.screens.MainScreen
 import com.skryg.checkersbluetooth.ui.screens.SavedGamesDestination
@@ -48,7 +50,8 @@ val navigationDestinations = mapOf(
     SavedGamesDestination.route to SavedGamesDestination,
     SettingsDestination.route to SettingsDestination,
     ThemeChangeDestination.route to ThemeChangeDestination,
-    LocalGameDestination.route to LocalGameDestination
+    LocalGameDestination.route to LocalGameDestination,
+    SavedGameDestination.route to SavedGameDestination
 )
 
 
@@ -102,7 +105,12 @@ fun Navigation() {
                     MainScreen(localGame = localGame)
                 }
                 composable(SavedGamesDestination.route) {
-                    SavedGamesScreen()
+                    SavedGamesScreen { game ->
+                        val route = SavedGameDestination.route.replace(Regex("\\{[^}]*\\}"),
+                            game.id.toString())
+
+                        navController.navigate(route)
+                    }
                 }
                 composable(SettingsDestination.route) {
                     SettingsScreen{
@@ -116,7 +124,15 @@ fun Navigation() {
                     arguments = LocalGameDestination.arguments){ backStackEntry ->
                     val gameId = backStackEntry.arguments?.getLong("game_id")
                     gameId?.let {
-                        LocalGameScreen(navController, viewModel(factory = GameViewModelFactory(gameId)))
+                        LocalGameScreen(navController, gameId)
+                    }
+                }
+                composable(
+                    SavedGameDestination.route,
+                    arguments = SavedGameDestination.arguments){ backStackEntry ->
+                    val gameId = backStackEntry.arguments?.getLong("game_id")
+                    gameId?.let {
+                        ShowSavedGame(gameId)
                     }
                 }
             }

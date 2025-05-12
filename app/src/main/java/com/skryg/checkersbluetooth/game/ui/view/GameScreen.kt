@@ -1,6 +1,5 @@
-package com.skryg.checkersbluetooth.game.ui.local
+package com.skryg.checkersbluetooth.game.ui.view
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,12 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +30,7 @@ import androidx.navigation.navArgument
 import com.skryg.checkersbluetooth.R
 import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.Turn
+import com.skryg.checkersbluetooth.game.ui.GameViewModelFactory
 import com.skryg.checkersbluetooth.game.ui.utils.Board
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
 import com.skryg.checkersbluetooth.ui.AppViewModelProvider
@@ -55,7 +53,8 @@ object LocalGameDestination: NavigationDestination(
 
 @Composable
 fun LocalGameScreen(navController: NavHostController,
-                    viewModel: LocalGameViewModel = viewModel(factory = AppViewModelProvider.Factory)){
+                    gameId: Long){
+    val viewModel: LocalGameViewModel = viewModel(factory = GameViewModelFactory(gameId))
     Column(Modifier.fillMaxSize()){
         val state = viewModel.gameUiState.collectAsState()
 
@@ -82,7 +81,7 @@ fun LocalGameScreen(navController: NavHostController,
         val playerState2 = PlayerState("Black", state.value.turn == Turn.BLACK)
         val playerState1 = PlayerState("White", state.value.turn == Turn.WHITE)
         LocalGameButtons(Modifier,proposeDraw,resignBlack,playerState2, rotated=true)
-        Board(modifier = Modifier.weight(1f),state = state, boardUpdater = viewModel)
+        Board(modifier = Modifier.weight(1f),state = state.value, boardUpdater = viewModel)
         LocalGameButtons(Modifier,proposeDraw,resignWhite, playerState1, rotated = false)
     }
 }
@@ -146,7 +145,7 @@ fun LocalGameScreenPreview(viewModel: LocalGameViewModel = viewModel(factory = A
 
         LocalGameButtons(Modifier,{}, {},playerState1.value, rotated=true)
         val state = remember { mutableStateOf(UiState()) }
-        Board(modifier = Modifier.weight(1f),state = state, boardUpdater = viewModel)
+        Board(modifier = Modifier.weight(1f),state = state.value, boardUpdater = viewModel)
         LocalGameButtons(Modifier,{},{}, playerState2.value, rotated = false)
     }
 }

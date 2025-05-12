@@ -23,6 +23,9 @@ interface GameDao {
     suspend fun getGame(id: Long): List<GameEntity>
 
     @Query("SELECT * FROM games ORDER BY creationTime DESC")
+    fun getAllGamesFlow(): Flow<List<GameEntity>>
+
+    @Query("SELECT * FROM games ORDER BY creationTime DESC")
     suspend fun getAllGames(): List<GameEntity>
 
     @Query("SELECT * FROM games " +

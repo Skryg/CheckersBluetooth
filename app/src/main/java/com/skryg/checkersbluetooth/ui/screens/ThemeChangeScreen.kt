@@ -66,5 +66,5 @@ fun ThemeChangeScreen(){
         }
     }
     val state = remember{ mutableStateOf(UiState(pieces = pieces))}
-    Board(state = state, theme = theme.value!!)
+    Board(state = state.value, theme = theme.value!!)
 }

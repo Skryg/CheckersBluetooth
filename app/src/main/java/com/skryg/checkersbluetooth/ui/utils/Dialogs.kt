@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,7 +33,7 @@ import com.skryg.checkersbluetooth.game.logic.model.GameResult
 private fun RequestDialog(onAccept: ()-> Unit, onDecline: ()-> Unit, rotated: Boolean = false, content: @Composable ()-> Unit){
     Dialog(onDismissRequest = onDecline){
         var modifier = Modifier
-            .background(Color(0xB3FFFFFF), shape = RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp))
             .padding(8.dp)
         if(rotated) modifier = modifier.rotate(180f)
         Column(modifier){
@@ -74,7 +75,7 @@ fun GameOverDialog(result: GameResult, navController: NavController, newGame: ()
 
     Dialog(onDismissRequest = goMenu){
         val modifier = Modifier
-            .background(Color(0xB3FFFFFF), shape = RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp))
             .padding(8.dp)
         Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
             Column(Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally){
