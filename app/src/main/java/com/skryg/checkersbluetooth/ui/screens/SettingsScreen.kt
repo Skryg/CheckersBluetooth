@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -108,7 +109,9 @@ fun SettingsScreen(themeChange: ()-> Unit){
 fun ChangeNickDialog(nickValue: String,
                      onDismiss: ()-> Unit = {}, onConfirm: (String)->Unit) {
     Dialog(onDismissRequest = { onDismiss() }){
-        Column(Modifier.clip(RoundedCornerShape(15.dp)).background(Color.White).padding(16.dp)){
+        Column(Modifier.clip(RoundedCornerShape(15.dp))
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp)){
             Text("Change nick")
             val nick = remember {mutableStateOf(nickValue)}
             TextField(value = nick.value, onValueChange = {nick.value = it} )
