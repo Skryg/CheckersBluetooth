@@ -33,21 +33,21 @@ class StandardPlayerMover(private val turn: Turn,
         val terminalStage = TerminalStage()
         val resetLast2 = ResetLast(gameState)
 
-        checkTurn.setNext(listOf(resetDraw))
-        resetDraw.setNext(listOf(checkMove))
-        checkMove.setNext(listOf(resetLast))
-        resetLast.setNext(listOf(performMove))
-        performMove.setNext(listOf(switchTurn, setLast))
-        setLast.setNext(listOf(checkMoveAttack))
-        checkMoveAttack.setNext(listOf(tryPromote, resetLast2))
-        resetLast2.setNext(listOf(switchTurn))
-        switchTurn.setNext(listOf(tryPromote))
+        checkTurn.setNext(resetDraw)
+        resetDraw.setNext(checkMove)
+        checkMove.setNext(resetLast)
+        resetLast.setNext(performMove)
+        performMove.setNext(switchTurn, setLast)
+        setLast.setNext(checkMoveAttack)
+        checkMoveAttack.setNext(tryPromote, resetLast2)
+        resetLast2.setNext(switchTurn)
+        switchTurn.setNext(tryPromote)
 
         if(repositorySave != null) {
-            tryPromote.setNext(listOf(repositorySave))
-            repositorySave.setNext(listOf(terminalStage))
+            tryPromote.setNext(repositorySave)
+            repositorySave.setNext(terminalStage)
         } else {
-            tryPromote.setNext(listOf(terminalStage))
+            tryPromote.setNext(terminalStage)
         }
 
         moveStage = checkMove

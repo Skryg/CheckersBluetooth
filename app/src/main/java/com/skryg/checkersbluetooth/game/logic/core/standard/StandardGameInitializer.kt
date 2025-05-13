@@ -61,13 +61,13 @@ private class InitializerMoverWrapper(checker: MoveChecker,
         val resetLast = ResetLast(state)
         val resetLast2 = ResetLast(state)
 
-        resetLast.setNext(listOf(performMove))
-        performMove.setNext(listOf(switchTurn, setLast))
-        setLast.setNext(listOf(checkMoveAttack))
-        checkMoveAttack.setNext(listOf(tryPromote, resetLast2))
-        resetLast2.setNext(listOf(switchTurn))
-        switchTurn.setNext(listOf(tryPromote))
-        tryPromote.setNext(listOf(terminalStage))
+        resetLast.setNext(performMove)
+        performMove.setNext(switchTurn, setLast)
+        setLast.setNext(checkMoveAttack)
+        checkMoveAttack.setNext(tryPromote, resetLast2)
+        resetLast2.setNext(switchTurn)
+        switchTurn.setNext(tryPromote)
+        tryPromote.setNext(terminalStage)
         handler = resetLast
     }
 

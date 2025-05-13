@@ -7,3 +7,9 @@ interface GameCoreFactory {
     fun getWhiteMover(): PlayerMover
     fun getBlackMover(): PlayerMover
 }
+
+interface SpectateGameFactory {
+    fun getSpectateMover(): ReversibleMover
+    fun getSpectateStateStreamer(): BaseStateStreamer
+    fun getBoardInitializer(): Initializer
+}

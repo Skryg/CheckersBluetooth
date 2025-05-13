@@ -12,11 +12,15 @@ interface PlayerMover : Mover {
     suspend fun draw()
 }
 
+interface ReversibleMover: Mover {
+    suspend fun undo()
+}
+
 abstract class  MoveStage {
     var list: List<MoveStage> = emptyList()
 
     abstract suspend fun handle(p1: Point, p2: Point): Boolean
-    fun setNext(stages: List<MoveStage>){
-        list = stages
+    fun setNext(vararg stages: MoveStage) {
+        list = stages.toList()
     }
 }

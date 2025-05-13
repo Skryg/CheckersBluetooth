@@ -6,6 +6,7 @@ import com.skryg.checkersbluetooth.game.logic.core.MoveStage
 import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
 import com.skryg.checkersbluetooth.game.logic.model.GameState
 import com.skryg.checkersbluetooth.game.logic.model.MutableGameBoard
+import com.skryg.checkersbluetooth.game.logic.model.Piece
 import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 import java.util.logging.Logger
@@ -30,43 +31,66 @@ class CheckMove(private val moveChecker: MoveChecker,
     }
 }
 
-class TryPromote(private val board: MutableGameBoard) : MoveStage() {
+class TryPromote(
+    private val board: MutableGameBoard,
+    private val promoteList: MutableList<Boolean>? = null
+    ) : MoveStage() {
     override suspend fun handle(p1: Point, p2: Point): Boolean {
         fun isLastPoint(point: Point, color: Turn): Boolean{
             return if(color == Turn.WHITE) point.y == 0 else point.y == 7
         }
 
-        fun tryPromote(p1: Point) {
-            val p = board.getPiece(p1) ?: return
-            if (isLastPoint(p1, p.color)) {
+        fun tryPromote(p1: Point) : Boolean {
+            val p = board.getPiece(p1) ?: return false
+            if (!p.king && isLastPoint(p1, p.color)) {
                 board.setPiece(p1, p.copy(king = true))
+                return true
             }
+            return false
         }
-        tryPromote(p2)
+        val p = tryPromote(p2)
+        promoteList?.add(p)
         return handle(0,p1,p2)
     }
 }
 
+data class MoveData(
+    val from: Point,
+    val to: Point,
+    val killed: List<Pair<Point, Piece>>
+)
+
 
 // If moved and it was not an attack then 0, else 1
-class PerformMove(val board: MutableGameBoard) : MoveStage() {
+class PerformMove(val board: MutableGameBoard,
+                  private val moveList: MutableList<MoveData>? =null)
+    : MoveStage() {
     override suspend fun handle(p1: Point, p2: Point): Boolean {
 
         board.getPiece(p1)?.let {
             var wasAttack = false
             board.setPiece(p2, it)
             board.setPiece(p1, null)
+            val killList = ArrayList<Pair<Point, Piece>>()
             
             val p = (p2 - p1)/ abs((p2 - p1).x)
             var px = p1.copy() + p
             while(px != p2 && (px.x in 0..7) && (px.y in 0..7)){
-
                 if (board.getPiece(px) != null) {
+                    killList.add(px to board.getPiece(px)!!)
                     wasAttack = true
                 }
+
                 board.setPiece(px, null)
                 px += p
             }
+            moveList?.add(
+                MoveData(
+                    from = p1,
+                    to = p2,
+                    killed = killList
+                )
+            )
 
             val idx = if(wasAttack) 1 else 0
             Logger.getLogger("Move").info("Move $p1 to $p2. Was attack: $wasAttack")

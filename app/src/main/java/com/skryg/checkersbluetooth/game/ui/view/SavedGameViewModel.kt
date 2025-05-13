@@ -1,5 +1,6 @@
 package com.skryg.checkersbluetooth.game.ui.view
 
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,7 +10,10 @@ import com.skryg.checkersbluetooth.database.GameEntity
 import com.skryg.checkersbluetooth.database.GameRepository
 import com.skryg.checkersbluetooth.database.Move
 import com.skryg.checkersbluetooth.game.logic.core.PieceInitializer
+import com.skryg.checkersbluetooth.game.logic.core.SpectateGameFactory
 import com.skryg.checkersbluetooth.game.logic.core.standard.StandardPieceInitializer
+import com.skryg.checkersbluetooth.game.logic.core.standard.spectate.StandardSpectateFactory
+import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.logic.model.toPoint
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 import com.skryg.checkersbluetooth.sound.GameSounds
@@ -18,18 +22,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.logging.Logger
 
 
 class SavedGameViewModel(repository: GameRepository,
                          gid: Long,
-                         pieceInitializer: PieceInitializer = StandardPieceInitializer(),
+                         spectateFactory: SpectateGameFactory = StandardSpectateFactory(),
                          private val gameSounds: GameSounds? = null)
     : ViewModel() {
     private lateinit var movesList: List<Move>
     private var movePointer = 0
 
+    private val initializer = spectateFactory.getBoardInitializer()
+    private val mover = spectateFactory.getSpectateMover()
+
     private val mutablePiecesFlow = MutableStateFlow(
-        MovesState(pieces = pieceInitializer.initialize()))
+        MovesState(pieces = emptyList()))
 
     val movesFlow = mutablePiecesFlow.asStateFlow()
     var game by mutableStateOf<GameEntity?>(null)
@@ -44,6 +53,8 @@ class SavedGameViewModel(repository: GameRepository,
     init {
         gameSounds?.load(Sound.MOVE)
         viewModelScope.launch {
+            initializer.initialize()
+
             val gameWithMoves = repository.getGameWithMoves(gid)
 
             gameWithMoves?.let{
@@ -57,45 +68,49 @@ class SavedGameViewModel(repository: GameRepository,
                     movePointer = movePointer
                 )
             }
+
+            spectateFactory
+                .getSpectateStateStreamer()
+                .getStateFlow()
+                .collect { gameState ->
+                    Logger.getLogger("SavedGameViewModel")
+                        .info("Game state updated: $gameState")
+                    mutablePiecesFlow.update {
+                        gameState.board.getAllPieces().map { piece ->
+                            PieceUi(
+                                point = piece.first,
+                                isDark = (piece.second.color == Turn.BLACK),
+                                isKing = piece.second.king,
+                            )
+                        }.let { pieces ->
+                            it.copy(
+                                pieces = pieces,
+                                movePointer = movePointer,
+                            )
+                        }
+                    }
+            }
+
+
         }
     }
 
-    fun moveNext() {
+    fun moveNext() = runBlocking {
         if(movePointer < movesList.size) {
             val move = movesList[movePointer]
             val from = move.from.toPoint()
             val to = move.to.toPoint()
 
             movePointer++
-            mutablePiecesFlow.update {
-                it.copy(pieces = it.pieces.map { piece ->
-                    if(piece.point == from) {
-                        piece.copy(point = to)
-                    } else {
-                        piece
-                    }
-                }, movePointer = movePointer)
-            }
+            mover.move(from, to)
             gameSounds?.play(Sound.MOVE)
         }
     }
 
-    fun movePrev() {
+    fun movePrev() = runBlocking {
         if(movePointer > 0) {
             movePointer--
-            val move = movesList[movePointer]
-            val from = move.from.toPoint()
-            val to = move.to.toPoint()
-
-            mutablePiecesFlow.update {
-                it.copy(pieces = it.pieces.map { piece ->
-                    if(piece.point == to) {
-                        piece.copy(point = from)
-                    } else {
-                        piece
-                    }
-                }, movePointer = movePointer)
-            }
+            mover.undo()
             gameSounds?.play(Sound.MOVE)
         }
     }

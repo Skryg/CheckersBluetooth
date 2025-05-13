@@ -16,6 +16,19 @@ open class GameBoard {
         }
     }
 
+    fun getAllPieces(): List<Pair<Point, Piece>> {
+        val list = ArrayList<Pair<Point, Piece>>()
+        for (i in 0 until size) {
+            for (j in 0 until size) {
+                val piece = getPiece(Point(i,j))
+                if(piece != null) {
+                    list.add(Pair(Point(i,j), piece))
+                }
+            }
+        }
+        return list
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
