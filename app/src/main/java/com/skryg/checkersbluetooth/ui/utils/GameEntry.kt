@@ -63,7 +63,6 @@ fun GameEntry(game: GameEntity, onClick:(GameEntity)->Unit = {}) {
                     .size(64.dp)
                     .clip(RoundedCornerShape(8.dp)),
                 pieceList = pieces
-
             )
 
             Column(

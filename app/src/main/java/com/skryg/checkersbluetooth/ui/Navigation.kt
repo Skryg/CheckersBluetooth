@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavOptions
@@ -31,6 +32,10 @@ import com.skryg.checkersbluetooth.ui.screens.SettingsDestination
 import com.skryg.checkersbluetooth.ui.screens.SettingsScreen
 import com.skryg.checkersbluetooth.ui.screens.ThemeChangeDestination
 import com.skryg.checkersbluetooth.ui.screens.ThemeChangeScreen
+import com.skryg.checkersbluetooth.ui.screens.bluetooth.BluetoothHostDestination
+import com.skryg.checkersbluetooth.ui.screens.bluetooth.BluetoothHostScreen
+import com.skryg.checkersbluetooth.ui.screens.bluetooth.BluetoothScanDestination
+import com.skryg.checkersbluetooth.ui.screens.bluetooth.BluetoothScanScreen
 import com.skryg.checkersbluetooth.ui.utils.DefaultTopAppBar
 import com.skryg.checkersbluetooth.ui.utils.MenuBottomBar
 import kotlinx.coroutines.runBlocking
@@ -52,8 +57,12 @@ val navigationDestinations = mapOf(
     SettingsDestination.route to SettingsDestination,
     ThemeChangeDestination.route to ThemeChangeDestination,
     LocalGameDestination.route to LocalGameDestination,
-    SavedGameDestination.route to SavedGameDestination
+    SavedGameDestination.route to SavedGameDestination,
+    BluetoothHostDestination.route to BluetoothHostDestination,
+    BluetoothScanDestination.route to BluetoothScanDestination
 )
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,8 +111,17 @@ fun Navigation() {
                             )
                         }
                     }
+                    val bluetoothHost = {
+                        navController.navigate(BluetoothHostDestination.route)
+                    }
+                    val bluetoothScan = {
+                        navController.navigate(BluetoothScanDestination.route)
+                    }
 
-                    MainScreen(localGame = localGame)
+                    MainScreen(
+                        localGame = localGame,
+                        bluetoothHost = bluetoothHost,
+                        bluetoothScan = bluetoothScan)
                 }
                 composable(SavedGamesDestination.route) {
                     SavedGamesScreen { game ->
@@ -162,6 +180,21 @@ fun Navigation() {
                         ShowSavedGame(gameId)
                     }
                 }
+                composable(BluetoothScanDestination.route){
+                    val application = LocalContext.current.applicationContext as CheckersApplication
+                    val viewModelFactory = ViewModelProvider.AndroidViewModelFactory(application)
+
+                    BluetoothScanScreen(viewModel(factory = viewModelFactory))
+                }
+
+                composable(BluetoothHostDestination.route){
+                    val application = LocalContext.current.applicationContext as CheckersApplication
+                    val viewModelFactory = ViewModelProvider.AndroidViewModelFactory(application)
+
+                    BluetoothHostScreen(viewModel(factory = viewModelFactory))
+                }
+
+
             }
         }
 
