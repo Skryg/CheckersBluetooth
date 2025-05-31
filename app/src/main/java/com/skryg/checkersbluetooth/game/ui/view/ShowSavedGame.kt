@@ -19,7 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.navArgument
@@ -27,6 +29,7 @@ import com.skryg.checkersbluetooth.database.GameEntity
 import com.skryg.checkersbluetooth.game.logic.model.GameConnection
 import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.Piece
+import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.ui.GameViewModelFactory
 import com.skryg.checkersbluetooth.game.ui.utils.Board
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
@@ -94,6 +97,13 @@ fun ShowSavedGame(gameId: Long){
         ) {
             InfoRow(label = "Game Type", value = gameType)
             InfoRow(label = "Result", value = result)
+
+
+            Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+                PlayerInfo(name = game.whitePlayer, color = Turn.WHITE)
+                Spacer(modifier = Modifier.width(16.dp))
+                PlayerInfo(name = game.blackPlayer, color = Turn.BLACK)
+            }
         }
 
         Board(modifier = Modifier.weight(1f), state = UiState(pieces = pieces))
@@ -154,6 +164,23 @@ private fun InfoRow(label: String, value: String) {
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+private fun PlayerInfo(name: String, color: Turn) {
+    Row {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "(${color.name.lowercase().replaceFirstChar { it.uppercase() }})",
+            style = MaterialTheme.typography.bodyMedium
+
         )
     }
 }
