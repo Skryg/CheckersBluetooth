@@ -24,7 +24,8 @@ class StandardPlayerMover(private val turn: Turn,
         val resetLast = ResetLast(gameState)
         val setLast = SetLast(gameState)
 
-        val checkMove = CheckMove(moveChecker)
+        val legalMove = LegalMove(moveChecker)
+//        val checkMove = CheckMove(moveChecker)
         val checkMoveAttack = CheckMove(moveChecker, true)
         val tryPromote = TryPromote(gameState.board)
         val performMove = PerformMove(gameState.board)
@@ -34,8 +35,8 @@ class StandardPlayerMover(private val turn: Turn,
         val resetLast2 = ResetLast(gameState)
 
         checkTurn.setNext(resetDraw)
-        resetDraw.setNext(checkMove)
-        checkMove.setNext(resetLast)
+        resetDraw.setNext(legalMove)
+        legalMove.setNext(resetLast)
         resetLast.setNext(performMove)
         performMove.setNext(switchTurn, setLast)
         setLast.setNext(checkMoveAttack)
@@ -50,7 +51,7 @@ class StandardPlayerMover(private val turn: Turn,
             tryPromote.setNext(terminalStage)
         }
 
-        moveStage = checkMove
+        moveStage = checkTurn
     }
 
     override suspend fun resign() {

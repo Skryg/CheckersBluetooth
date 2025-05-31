@@ -48,11 +48,20 @@ object BluetoothScanDestination: NavigationDestination(
 
 
 @Composable
-fun BluetoothScanScreen(viewModel : BluetoothViewModel) {
+fun BluetoothScanScreen(viewModel : BluetoothViewModel, navigateGame: (Long) -> Unit = {}) {
 
     val devices by viewModel.devices.collectAsState()
 
     val context = LocalContext.current
+    val gameId = viewModel.gameId.collectAsState()
+
+    LaunchedEffect(gameId.value) {
+        if (gameId.value != null) {
+            Log.i("BluetoothScanScreen", "Navigating to game with ID: ${gameId.value}")
+            navigateGame(gameId.value!!)
+        }
+    }
+
 
     LaunchedEffect(Unit) {
         viewModel.toastFlow.collectLatest { toast ->
@@ -78,13 +87,13 @@ fun BluetoothScanScreen(viewModel : BluetoothViewModel) {
 @SuppressLint("MissingPermission")
 @Composable
 fun BluetoothScanView(
-    devices: List<BluetoothDevice>,
+    devices: Set<BluetoothDevice>,
     onDeviceClick: (BluetoothDevice) -> Unit,
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
 ) {
     var isScanning by remember { mutableStateOf(false)}
-
+    val devicesList = devices.toList()
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)) {
@@ -106,7 +115,7 @@ fun BluetoothScanView(
 
 
         LazyColumn {
-            items(devices) { device ->
+            items(devicesList) { device ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,7 +138,7 @@ fun BluetoothScanView(
 fun BluetoothScanScreenPreview() {
 
     BluetoothScanView(
-        devices = emptyList(),
+        devices = emptySet(),
         onDeviceClick = {},
         onStartScan = {},
         onStopScan = {}

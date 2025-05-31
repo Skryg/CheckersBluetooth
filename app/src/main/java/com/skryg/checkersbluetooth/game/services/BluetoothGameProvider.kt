@@ -22,6 +22,7 @@ class BluetoothGameProvider(
         runBlocking {
             val initializer = gameCoreFactory.getGameInitializer()
             initializer.initialize()
+            initializer.load(id)
         }
     }
 
@@ -64,7 +65,7 @@ class BluetoothGameProvider(
             if(streamer.getStateFlow().value.turn != localPlayerTurn) {
                 return emptyList()
             }
-            return moveChecker.getMovables()
+            return moveChecker.getMoves(point)
         }
     }
 

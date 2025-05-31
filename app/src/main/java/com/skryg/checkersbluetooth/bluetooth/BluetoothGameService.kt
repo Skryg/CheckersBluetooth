@@ -27,8 +27,13 @@ import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.logic.model.toPoint
 import com.skryg.checkersbluetooth.game.services.BluetoothGameProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.locks.ReentrantLock
 
 object BluetoothSocketWrapperHolder {
     var socket: BluetoothSocket? = null
@@ -41,16 +46,19 @@ object GameCreationCallback {
 class BluetoothGameService: LifecycleService() {
     companion object {
         const val NOTIFICATION_ID = 101
+        var isServiceRunning = false
+            private set
     }
 
     private var bluetoothSocket: BluetoothSocket? = null
     private var inputThread: Thread? = null
     private var connectionThread: ConnectionThread? = null
-    private lateinit var gameProvider: BluetoothGameProvider
+    private var gameProvider: BluetoothGameProvider? = null
     private lateinit var myName: String
+    private val _gameId = MutableStateFlow<Long?> (null)
+    val gameId = _gameId.asStateFlow()
 
     private lateinit var opponentName: String
-    private var gameCallback: ((Long)->Unit)? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -68,7 +76,6 @@ class BluetoothGameService: LifecycleService() {
                 ?: getString(R.string.player_default)
         }
 
-        gameCallback = GameCreationCallback.callback
         val socket = BluetoothSocketWrapperHolder.socket
 
         connectionThread = socket?.let {
@@ -77,6 +84,7 @@ class BluetoothGameService: LifecycleService() {
         }
         connectionThread?.start()
 
+        isServiceRunning = true
         return START_STICKY
     }
 
@@ -94,14 +102,16 @@ class BluetoothGameService: LifecycleService() {
             else
                 StandardGameCoreFactory(appContainer.gameRepository)
 
+
         gameProvider = BluetoothGameProvider(
             gameId,
             this@BluetoothGameService,
             gameFactory,
             localPlayerTurn
         )
-        appContainer.gameController.loadGame(gameProvider)
-        gameCallback?.invoke(gameId)
+        appContainer.gameController.loadGame(gameProvider!!)
+        _gameId.value = gameId
+
     }
 
     fun handleMessage(message: Message) {
@@ -136,14 +146,16 @@ class BluetoothGameService: LifecycleService() {
 
                 lifecycleScope.launch {
                     val moveMessage: MoveMessage = message
-                    val playerMover: PlayerMover = gameProvider.getRemotePlayerMover()
+                    val playerMover: PlayerMover = gameProvider?.getRemotePlayerMover() ?:
+                        throw IllegalStateException("Game provider is not initialized")
                     playerMover.move(moveMessage.from.toPoint(), moveMessage.to.toPoint())
                 }
             }
             is DrawMessage -> {
                 Log.d("GameService", "Draw request from player: ${message.playerName}")
                 lifecycleScope.launch{
-                    val playerMover: PlayerMover = gameProvider.getRemotePlayerMover()
+                    val playerMover: PlayerMover = gameProvider?.getRemotePlayerMover() ?:
+                        throw IllegalStateException("Game provider is not initialized")
                     playerMover.draw()
                 }
 
@@ -151,12 +163,14 @@ class BluetoothGameService: LifecycleService() {
             is ResignMessage -> {
                 Log.d("GameService", "Resignation from player: ${message.playerName}")
                 lifecycleScope.launch {
-                    val playerMover: PlayerMover = gameProvider.getRemotePlayerMover()
+                    val playerMover: PlayerMover = gameProvider?.getRemotePlayerMover() ?:
+                        throw IllegalStateException("Game provider is not initialized")
                     playerMover.resign()
                 }
             }
         }
     }
+
 
     fun initializeGame(
         gameType: GameType = GameType.STANDARD,
@@ -211,7 +225,7 @@ class BluetoothGameService: LifecycleService() {
                             Log.d("GameService", "Received complete message: $message")
                             val deserialized = MessageSerializer().deserialize(messageStr.trim())
                             handleMessage(deserialized)
-                            messageStr.drop(id+1) // Reset for next message
+                            messageStr=messageStr.drop(id+1) // Reset for next message
                         }
                     } else {
                         Log.d("GameService", "Incomplete message received, waiting for more data")
@@ -252,6 +266,7 @@ class BluetoothGameService: LifecycleService() {
         super.onDestroy()
         inputThread?.interrupt()
         bluetoothSocket?.close()
+        isServiceRunning = false
     }
 
     inner class LocalBinder : Binder() {
@@ -282,7 +297,7 @@ class BluetoothGameService: LifecycleService() {
 
 
     private fun BluetoothGameProvider.getRemotePlayerMover(): PlayerMover {
-        return if (gameProvider.localPlayerTurn == Turn.WHITE) getBlackMover() else getWhiteMover()
+        return if (gameProvider?.localPlayerTurn == Turn.WHITE) getBlackMover() else getWhiteMover()
     }
 
 }

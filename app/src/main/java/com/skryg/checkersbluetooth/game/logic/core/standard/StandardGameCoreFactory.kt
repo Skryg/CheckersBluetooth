@@ -10,7 +10,7 @@ import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
 import com.skryg.checkersbluetooth.game.logic.model.GameState
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 
-class StandardGameCoreFactory(repository: GameRepository?=null) : GameCoreFactory {
+class StandardGameCoreFactory(private val repository: GameRepository?=null) : GameCoreFactory {
     private val state by lazy { GameState() }
     private val moveChecker by lazy { StandardMoveChecker(state) }
     private val stateStreamer by lazy { StandardStateStreamer(state, repository) }

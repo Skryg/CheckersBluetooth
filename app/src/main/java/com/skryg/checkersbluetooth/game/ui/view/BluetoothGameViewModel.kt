@@ -26,7 +26,17 @@ class BluetoothGameViewModel(private val provider: BluetoothGameProvider, gameSo
     private val _gameUiState = MutableStateFlow(UiState())
     val gameUiState = _gameUiState.asStateFlow()
     private val showDrawDialog = mutableStateOf(false)
+    val localTurn = provider.localPlayerTurn
+    private var cachedPoint: Point? = null
 
+    val myName = if(localTurn == Turn.WHITE)
+        provider.getStateStreamer().getStateFlow().value.nameWhite
+    else
+        provider.getStateStreamer().getStateFlow().value.nameBlack
+    val opponentName = if(localTurn == Turn.WHITE)
+        provider.getStateStreamer().getStateFlow().value.nameBlack
+    else
+        provider.getStateStreamer().getStateFlow().value.nameWhite
 
     init {
         gameSounds?.load(Sound.MOVE)
@@ -49,8 +59,13 @@ class BluetoothGameViewModel(private val provider: BluetoothGameProvider, gameSo
                     val movables = provider.getMoveChecker().getMovables()
 
                     when (it.result) {
-                        GameResult.WHITE_WON, GameResult.BLACK_WON -> {
-                            gameSounds?.play(Sound.WIN)
+                        GameResult.WHITE_WON -> {
+                            val sound = if(localTurn == Turn.WHITE) Sound.WIN else Sound.LOSE
+                            gameSounds?.play(sound)
+                        }
+                        GameResult.BLACK_WON -> {
+                            val sound = if(localTurn == Turn.BLACK) Sound.WIN else Sound.LOSE
+                            gameSounds?.play(sound)
                         }
                         GameResult.DRAW -> {
                             gameSounds?.play(Sound.LOSE)
@@ -66,10 +81,10 @@ class BluetoothGameViewModel(private val provider: BluetoothGameProvider, gameSo
                         turn = it.turn,
                         result = it.result
                     )
-
                 }
-
-
+                if(cachedPoint != null) {
+                    updateSelected(cachedPoint)
+                }
             }
 
         }
@@ -77,6 +92,7 @@ class BluetoothGameViewModel(private val provider: BluetoothGameProvider, gameSo
     }
 
     override fun updateSelected(point: Point?) {
+        cachedPoint = point
         val list = point?.let{ provider.getMoveChecker().getMoves(point) }
         _gameUiState.update{
             it.copy(movePoints = list ?: emptyList())

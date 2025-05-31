@@ -19,7 +19,7 @@ class GameControllerImpl(private val repository: GameRepository? = null): GameCo
     override suspend fun createGame(gameConnection: GameConnection, whitePlayer:String, blackPlayer: String): Long {
         var gid = randomGID()
         if(repository != null) {
-            val game = GameEntity(whitePlayer = whitePlayer, blackPlayer = blackPlayer)
+            val game = GameEntity(whitePlayer = whitePlayer, blackPlayer = blackPlayer, gameConnection = gameConnection)
             gid = repository.insert(game)
         }
 

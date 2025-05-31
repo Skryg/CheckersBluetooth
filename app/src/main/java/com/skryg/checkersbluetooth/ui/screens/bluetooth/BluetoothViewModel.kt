@@ -21,15 +21,24 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.skryg.checkersbluetooth.CheckersApplication
 import com.skryg.checkersbluetooth.bluetooth.BluetoothGameService
 import com.skryg.checkersbluetooth.bluetooth.BluetoothSocketWrapperHolder
 import com.skryg.checkersbluetooth.bluetooth.BluetoothUtils
+import com.skryg.checkersbluetooth.bluetooth.ServiceConnectionManager
+import com.skryg.checkersbluetooth.game.logic.model.GameType
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.logging.Logger
 
@@ -40,53 +49,48 @@ class BluetoothViewModel(application: Application): AndroidViewModel(application
         .getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
 
-    private val _devices = MutableStateFlow<List<BluetoothDevice>>(
-        bluetoothAdapter?.bondedDevices?.toList() ?: emptyList())
-    val devices = _devices.asStateFlow()
+    val devices = getApplication<CheckersApplication>()
+        .bluetoothDevices
+
+    private val _gameId = MutableStateFlow<Long?>(null)
+    val gameId = _gameId.asStateFlow()
 
     private val _toastFlow = MutableSharedFlow<String>(
         replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val toastFlow = _toastFlow.asSharedFlow()
+
+    private val connectionManager = ServiceConnectionManager(getApplication<Application>().applicationContext)
 
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled ?: false
     private val isBluetoothSupported: Boolean
         get() = bluetoothAdapter != null
 
-    private val foundDevices = mutableSetOf<String>()
     private var scanning = false
 
     private var acceptThread: AcceptThread? = null
-
-    private val scanReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                BluetoothDevice.ACTION_FOUND -> {
-                    Log.d("BluetoothViewModel", "Device found")
-                    val device: BluetoothDevice? = intent.parcelable(BluetoothDevice.EXTRA_DEVICE)
-                    device?.let {
-                        Log.d("BluetoothViewModel", "Found device: ${it.name} at ${it.address}")
-                        if (!foundDevices.contains(it.address)) {
-                            foundDevices.add(it.address)
-                            _devices.value += it
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     init {
         Logger.getLogger("BluetoothViewModel")
             .info("BluetoothManager initialized: $bluetoothManager")
         Logger.getLogger("BluetoothViewModel")
             .info("Bluetooth supported: $isBluetoothSupported, enabled: $isBluetoothEnabled")
+
     }
 
     fun connectToDevice(device: BluetoothDevice) {
         if (isBluetoothEnabled) {
             val connectThread = ConnectThread(device) {
                 startGameService(it)
+                connectionManager.bindService { service ->
+                    viewModelScope.launch {
+                        service.gameId.collect { gid ->
+                            _gameId.value = gid
+                            Logger.getLogger("BluetoothViewModel").info("Game ID updated: ${gid.toString()}")
+                        }
+                    }
+//
+                }
             }
             connectThread.start()
 
@@ -100,6 +104,15 @@ class BluetoothViewModel(application: Application): AndroidViewModel(application
         if (isBluetoothEnabled) {
             val acceptThread = AcceptThread {
                 startGameService(it)
+                connectionManager.bindService { service ->
+                    service.initializeGame(GameType.STANDARD, initialTurn)
+                    viewModelScope.launch {
+                        service.gameId.collect { gid ->
+                            _gameId.value = gid
+                            Logger.getLogger("BluetoothViewModel").info("Game ID updated: $it")
+                        }
+                    }
+                }
             }
             acceptThread.start()
             Logger.getLogger("BluetoothViewModel").info("Hosting started")
@@ -115,38 +128,35 @@ class BluetoothViewModel(application: Application): AndroidViewModel(application
     }
 
     fun scanForDevices() {
-        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-
-        val context = getApplication<Application>()
-            .applicationContext
-        context.registerReceiver(scanReceiver, filter)
-
-
         if (isBluetoothEnabled) {
+            val app = getApplication<CheckersApplication>()
+            bluetoothAdapter?.bondedDevices?.forEach { bonded ->
+                app.addDevice(bonded)
+            }
             bluetoothAdapter?.startDiscovery()
             scanning = true
+
         } else {
             // Handle the case where Bluetooth is not enabled
         }
     }
 
     fun stopScan() {
-        val context = getApplication<Application>()
-            .applicationContext
         bluetoothAdapter?.cancelDiscovery()
-        context.unregisterReceiver(scanReceiver)
         scanning = false
     }
 
+
     override fun onCleared() {
         super.onCleared()
+        connectionManager.unbindService()
         if(scanning) {
             stopScan()
-            cancelHosting()
         }
+        cancelHosting()
     }
 
-    fun startGameService(socket: BluetoothSocket) {
+    private fun startGameService(socket: BluetoothSocket) {
         if (isBluetoothEnabled) {
             BluetoothSocketWrapperHolder.socket = socket
             val context = getApplication<Application>().applicationContext

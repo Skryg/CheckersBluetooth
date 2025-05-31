@@ -31,6 +31,15 @@ class CheckMove(private val moveChecker: MoveChecker,
     }
 }
 
+class LegalMove(private val moveChecker: MoveChecker) : MoveStage() {
+    override suspend fun handle(p1: Point, p2: Point): Boolean {
+        val moves = moveChecker.getMoves(p1)
+        val idx = if (moves.contains(p2)) 0 else 1
+        Logger.getLogger("CheckMove").info("Check move $p1 to $p2. Can move to: $moves")
+        return handle(idx, p1, p2)
+    }
+}
+
 class TryPromote(
     private val board: MutableGameBoard,
     private val promoteList: MutableList<Boolean>? = null
@@ -127,6 +136,7 @@ class SwitchTurn(private val state: GameState,
 
 class RepositorySave(private val repository: GameRepository, private val state: GameState) : MoveStage() {
     override suspend fun handle(p1: Point, p2: Point): Boolean {
+        Logger.getLogger("RepositorySave").info("Saving move to repository: $p1 to $p2 for game ${state.gameId}")
         repository.insert(com.skryg.checkersbluetooth.database.Move(gameId = state.gameId, from = p1.toString(), to = p2.toString()))
         return handle(0,p1,p2)
     }

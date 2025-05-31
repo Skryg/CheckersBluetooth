@@ -22,6 +22,8 @@ import com.skryg.checkersbluetooth.game.logic.core.standard.StandardGameCoreFact
 import com.skryg.checkersbluetooth.game.logic.model.GameConnection
 import com.skryg.checkersbluetooth.game.services.LocalGameProvider
 import com.skryg.checkersbluetooth.game.ui.GameViewModelFactory
+import com.skryg.checkersbluetooth.game.ui.view.BluetoothGameDestination
+import com.skryg.checkersbluetooth.game.ui.view.BluetoothGameScreen
 import com.skryg.checkersbluetooth.game.ui.view.LocalGameDestination
 import com.skryg.checkersbluetooth.game.ui.view.LocalGameScreen
 import com.skryg.checkersbluetooth.game.ui.view.SavedGameDestination
@@ -61,7 +63,8 @@ val navigationDestinations = mapOf(
     LocalGameDestination.route to LocalGameDestination,
     SavedGameDestination.route to SavedGameDestination,
     BluetoothHostDestination.route to BluetoothHostDestination,
-    BluetoothScanDestination.route to BluetoothScanDestination
+    BluetoothScanDestination.route to BluetoothScanDestination,
+    BluetoothGameDestination.route to BluetoothGameDestination
 )
 
 
@@ -143,6 +146,19 @@ fun Navigation() {
                 composable(ThemeChangeDestination.route){
                     ThemeChangeScreen()
                 }
+                composable(BluetoothGameDestination.route,
+                    arguments = BluetoothGameDestination.arguments){ backStackEntry ->
+                    val gameId = backStackEntry.arguments?.getLong("game_id")
+
+                    gameId?.let{
+                        BluetoothGameScreen(gameId) {
+                            navController.navigateUp()
+                        }
+                    }
+
+
+                }
+
                 composable(LocalGameDestination.route,
                     arguments = LocalGameDestination.arguments){ backStackEntry ->
                     val app = (LocalContext.current.applicationContext as CheckersApplication)
@@ -191,14 +207,30 @@ fun Navigation() {
                     val application = LocalContext.current.applicationContext as CheckersApplication
                     val viewModelFactory = ViewModelProvider.AndroidViewModelFactory(application)
 
-                    BluetoothScanScreen(viewModel(factory = viewModelFactory))
+                    BluetoothScanScreen(viewModel(factory = viewModelFactory)) { gameId ->
+                        val route = BluetoothGameDestination.route.replace(Regex("\\{[^}]*\\}"),
+                            gameId.toString())
+                        navController.navigate(route, navOptions = NavOptions.Builder()
+                            .setPopUpTo(
+                                MainDestination.route,
+                                inclusive = false
+                            ).build())
+                    }
                 }
 
                 composable(BluetoothHostDestination.route){
                     val application = LocalContext.current.applicationContext as CheckersApplication
                     val viewModelFactory = ViewModelProvider.AndroidViewModelFactory(application)
 
-                    BluetoothHostScreen(viewModel(factory = viewModelFactory))
+                    BluetoothHostScreen(viewModel(factory = viewModelFactory)) { gameId ->
+                        val route = BluetoothGameDestination.route.replace(Regex("\\{[^}]*\\}"),
+                            gameId.toString())
+                        navController.navigate(route, navOptions = NavOptions.Builder()
+                            .setPopUpTo(
+                                MainDestination.route,
+                                inclusive = false
+                            ).build())
+                    }
                 }
 
 

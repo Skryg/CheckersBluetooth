@@ -46,38 +46,29 @@ object BluetoothGameDestination: NavigationDestination(
 )
 
 @Composable
-fun BluetoothGameScreen(gameId: Long, localTurn: Turn, goMenu: () -> Unit){
+fun BluetoothGameScreen(gameId: Long, goMenu: () -> Unit){
     val viewModel: BluetoothGameViewModel = viewModel(factory = GameViewModelFactory(gameId))
+    val localTurn = viewModel.localTurn
     Column(Modifier.fillMaxSize()){
         val state by viewModel.gameUiState.collectAsStateWithLifecycle()
 
         state.result.let {
             if (it != GameResult.ONGOING) {
-                GameOverDialog(it, { }, goMenu)
+                GameOverDialog(it, goMenu = goMenu)
             }
         }
-
-        val proposeDraw = {
-            viewModel.proposeDraw()
-        }
-
-
 
         val resign = {
             viewModel.resign()
         }
 
-        val name: (Boolean) -> String = {
-            if(it) "Black"
-            else "White"
-        }
-        val playerState2 = PlayerState(name(state.turn != localTurn), state.turn != localTurn)
-        val playerState1 = PlayerState(name(state.turn == localTurn), state.turn == localTurn)
+        val playerState2 = PlayerState(viewModel.opponentName, state.turn != localTurn)
+        val playerState1 = PlayerState(viewModel.myName, state.turn == localTurn)
         val boardModifier = if(localTurn == Turn.WHITE) Modifier.weight(1f)
                             else Modifier.weight(1f).rotate(180f)
         BluetoothGameButtons(Modifier, playerState2, showButtons = false)
         Board(modifier = boardModifier,state = state, boardUpdater = viewModel)
-        BluetoothGameButtons(Modifier, playerState1, proposeDraw, resign, rotated = false)
+        BluetoothGameButtons(Modifier, playerState1, resign, rotated = false)
     }
 }
 
@@ -85,7 +76,6 @@ fun BluetoothGameScreen(gameId: Long, localTurn: Turn, goMenu: () -> Unit){
 fun BluetoothGameButtons(
     modifier:Modifier=Modifier,
     playerState: PlayerState,
-    onClickDraw: ()->Unit = {},
     onClickResign: ()-> Unit ={},
     showButtons: Boolean = true,
     rotated: Boolean = false
@@ -93,13 +83,7 @@ fun BluetoothGameButtons(
     var modif = modifier.fillMaxWidth()
     if(rotated) modif = modif.rotate(180f)
 
-//    var drawDialog by remember{ mutableStateOf(false) }
     var resignDialog by remember{ mutableStateOf(false) }
-
-//    if(drawDialog) DrawRequestDialog(
-//        onAccept = { onClickDraw(); drawDialog = false },
-//        onDecline = { drawDialog = false },
-//        rotated = !rotated)
 
     if(resignDialog) ResignDialog(
         onAccept = { onClickResign(); resignDialog = false },
@@ -116,13 +100,7 @@ fun BluetoothGameButtons(
                     val flagIcon = R.drawable.baseline_flag_24
                     Icon(painter = painterResource(id = flagIcon), contentDescription = "Give up")
                 }
-//                IconButton(onClick = { drawDialog = true }) {
-//                    val handsIcon = R.drawable.baseline_handshake_24
-//                    Icon(
-//                        painter = painterResource(id = handsIcon),
-//                        contentDescription = "Propose draw"
-//                    )
-//                }
+//
             }
         }
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {

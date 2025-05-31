@@ -15,6 +15,10 @@ class StandardMoveChecker(private val gameState: GameState) : MoveChecker {
     }
 
     override fun getMoves(point: Point): List<Point> {
+        if(!getMovables().contains(point)){
+            return emptyList()
+        }
+
         val attacks = getAttacks(point, gameState.lastMove)
         if(attacks.isNotEmpty() || gameState.lastMove != null)
             return attacks

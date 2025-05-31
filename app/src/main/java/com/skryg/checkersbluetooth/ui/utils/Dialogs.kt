@@ -76,9 +76,9 @@ fun ResignDialog(onAccept: () -> Unit, onDecline: () -> Unit, rotated: Boolean =
 }
 
 @Composable
-fun GameOverDialog(result: GameResult, newGame: ()->Unit = {}, goMenu: ()-> Unit = {}){
+fun GameOverDialog(result: GameResult, newGame: (()->Unit)? = null, goMenu: (()-> Unit)? = null){
 
-    Dialog(onDismissRequest = goMenu){
+    Dialog(onDismissRequest = { goMenu?.invoke() }){
         val modifier = Modifier
             .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp))
             .padding(8.dp)
@@ -99,11 +99,15 @@ fun GameOverDialog(result: GameResult, newGame: ()->Unit = {}, goMenu: ()-> Unit
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
-                TextButton(onClick = newGame) {
-                    Text("New game")
+                newGame?.let {
+                    TextButton(onClick = it) {
+                        Text("New game")
+                    }
                 }
-                TextButton(onClick = goMenu){
-                    Text("Go to menu")
+                goMenu?.let {
+                    TextButton(onClick = it){
+                        Text("Go to menu")
+                    }
                 }
             }
         }

@@ -4,6 +4,7 @@ package com.skryg.checkersbluetooth.ui.screens.bluetooth
 import android.app.Activity.RESULT_OK
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -31,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,17 +67,24 @@ object BluetoothHostDestination: NavigationDestination(
 )
 
 @Composable
-fun BluetoothHostScreen(viewModel : BluetoothViewModel){
-//    val connectedDevice = remember { mutableStateOf<BluetoothDevice?>(null) }
+fun BluetoothHostScreen(viewModel : BluetoothViewModel, navigateGame: (Long) -> Unit = {}){
 
     val discoverableLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {}
     val durationSecs = 300
 
+    val gameId = viewModel.gameId.collectAsState()
+
+    LaunchedEffect(gameId.value) {
+        if (gameId.value != null) {
+            Log.i("BluetoothHostScreen", "Navigating to game with ID: ${gameId.value}")
+            navigateGame(gameId.value!!)
+        }
+    }
 
     BluetoothHostView(
-        setColor = { viewModel.setTurn(if(it) Turn.BLACK else Turn.WHITE)}
+        setColor = {  viewModel.setTurn(if(it) Turn.BLACK else Turn.WHITE)},
         onCancelHosting = { viewModel.cancelHosting() },
         onPlay = {
             viewModel.startHosting()
@@ -122,7 +131,7 @@ fun BluetoothHostView(
 
                 Switch(
                     checked = black,
-                    onCheckedChange = { black = it },
+                    onCheckedChange = { black = it; setColor(it) },
                 )
 
             }
