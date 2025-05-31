@@ -13,14 +13,15 @@ data class GameState(
     @Volatile
     var gameId: Long = -1,
     val board: MutableGameBoard = MutableGameBoard(),
-    val nameWhite: String = "White",
-    val nameBlack: String = "Black",
+    var nameWhite: String = "White",
+    var nameBlack: String = "Black",
 
     @Volatile
-    private var drawWhite: Boolean = false,
+    var drawWhite: Boolean = false,
     @Volatile
-    private var drawBlack: Boolean = false,
+    var drawBlack: Boolean = false,
 ){
+
     fun draw(color: Turn) {
         if (color == Turn.BLACK) {
             drawBlack = true
@@ -46,7 +47,9 @@ data class GameState(
             board = board as GameBoard,
             gameId = gameId,
             nameWhite = nameWhite,
-            nameBlack = nameBlack
+            nameBlack = nameBlack,
+            drawWhite = drawWhite,
+            drawBlack = drawBlack
         )
     }
 }
@@ -58,7 +61,9 @@ data class GameStateReadonly(
     val board: GameBoard,
     val gameId: Long,
     val nameWhite: String,
-    val nameBlack: String
+    val nameBlack: String,
+    val drawWhite: Boolean = false,
+    val drawBlack: Boolean = false
 ){}
 
 enum class Turn {
@@ -76,4 +81,8 @@ enum class GameResult{
 enum class GameConnection{
     LOCAL,
     BLUETOOTH
+}
+
+enum class GameType {
+    STANDARD
 }

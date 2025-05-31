@@ -5,6 +5,7 @@ import com.skryg.checkersbluetooth.game.logic.core.PlayerMover
 import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
 
 interface GameProvider {
+    val id: Long
     fun getWhiteMover(): PlayerMover
     fun getBlackMover(): PlayerMover
     fun getMoveChecker(): MoveChecker

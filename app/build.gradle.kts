@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "2.1.21"
     id("com.google.devtools.ksp") version "2.0.10-1.0.24"
 
 }
@@ -13,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.skryg.checkersbluetooth"
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -65,13 +66,12 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.material3)
     implementation(libs.androidx.runtime.livedata)
-
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -38,6 +38,9 @@ class StandardGameInitializer(private val state: GameState,
         val entity = repository.getGameWithMoves(gid)
         if (entity != null) {
             state.result = entity.game.winner
+            state.nameWhite = entity.game.whitePlayer
+            state.nameBlack = entity.game.blackPlayer
+
             for (move in entity.moves) {
                 moverWrapper.move(move.from.toPoint(), move.to.toPoint())
             }

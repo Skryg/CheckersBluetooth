@@ -48,6 +48,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.skryg.checkersbluetooth.CheckersApplication
 import com.skryg.checkersbluetooth.game.logic.model.Point
+import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.ui.utils.LittleBoard
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 import com.skryg.checkersbluetooth.ui.NavigationDestination
@@ -74,6 +75,7 @@ fun BluetoothHostScreen(viewModel : BluetoothViewModel){
 
 
     BluetoothHostView(
+        setColor = { viewModel.setTurn(if(it) Turn.BLACK else Turn.WHITE)}
         onCancelHosting = { viewModel.cancelHosting() },
         onPlay = {
             viewModel.startHosting()
@@ -87,6 +89,7 @@ fun BluetoothHostScreen(viewModel : BluetoothViewModel){
 
 @Composable
 fun BluetoothHostView(
+    setColor: (Boolean) -> Unit = {},
     onCancelHosting: () -> Unit,
     onPlay: () -> Unit
 ) {

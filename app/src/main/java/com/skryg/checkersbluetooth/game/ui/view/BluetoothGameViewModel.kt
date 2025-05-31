@@ -1,16 +1,15 @@
 package com.skryg.checkersbluetooth.game.ui.view
 
-import android.media.AudioAttributes
-import android.media.SoundPool
-import android.provider.MediaStore.Audio
-import androidx.lifecycle.AndroidViewModel
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.logic.model.Turn
+import com.skryg.checkersbluetooth.game.services.BluetoothGameProvider
 import com.skryg.checkersbluetooth.game.services.GameController
-import com.skryg.checkersbluetooth.game.services.LocalGameProvider
+import com.skryg.checkersbluetooth.game.services.GameProvider
 import com.skryg.checkersbluetooth.game.ui.utils.BoardUpdater
 import com.skryg.checkersbluetooth.game.ui.utils.PieceUi
 import com.skryg.checkersbluetooth.game.ui.utils.UiState
@@ -22,22 +21,22 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 
-class LocalGameViewModel(private val provider: LocalGameProvider, gameSounds: GameSounds? = null)
+class BluetoothGameViewModel(private val provider: BluetoothGameProvider, gameSounds: GameSounds? = null)
     : ViewModel(), BoardUpdater {
     private val _gameUiState = MutableStateFlow(UiState())
     val gameUiState = _gameUiState.asStateFlow()
+    private val showDrawDialog = mutableStateOf(false)
+
 
     init {
         gameSounds?.load(Sound.MOVE)
         gameSounds?.load(Sound.WIN)
         gameSounds?.load(Sound.LOSE)
-
-        println("Provider: $provider, gameId: ${provider.id}")
-        println("New GameViewModel")
+        println("BluetoothGameViewModel initialized with provider: $provider")
         viewModelScope.launch {
-            println("LAUNCH VIEWMODEL SCOPE")
             provider.getStateStreamer().getStateFlow().collect {
                 println("COLLECTING STATE FLOW")
+
                 _gameUiState.update { gameState ->
                     println("Updating game state")
                     val list = ArrayList<PieceUi>()
@@ -72,7 +71,9 @@ class LocalGameViewModel(private val provider: LocalGameProvider, gameSounds: Ga
 
 
             }
+
         }
+
     }
 
     override fun updateSelected(point: Point?) {
@@ -84,30 +85,15 @@ class LocalGameViewModel(private val provider: LocalGameProvider, gameSounds: Ga
 
     override fun move(point1: Point, point2: Point) {
         viewModelScope.launch {
-            val mover = if(provider.getStateStreamer().getStateFlow().value.turn == Turn.WHITE)
-                provider.getWhiteMover() else provider.getBlackMover()
+            val mover = provider.getLocalPlayerMover()
             mover.move(point1, point2)
         }
     }
 
-    fun resign(color: Turn) {
+    fun resign() {
         viewModelScope.launch {
-            val mover = if(color == Turn.WHITE)
-                provider.getWhiteMover() else provider.getBlackMover()
+            val mover = provider.getLocalPlayerMover()
             mover.resign()
         }
     }
-
-    fun proposeDraw(color: Turn) {
-        viewModelScope.launch {
-            val mover = if(color == Turn.WHITE)
-                provider.getWhiteMover() else provider.getBlackMover()
-            mover.draw()
-        }
-    }
 }
-
-data class PlayerState(
-    val name: String = "",
-    val turn: Boolean = true
-)

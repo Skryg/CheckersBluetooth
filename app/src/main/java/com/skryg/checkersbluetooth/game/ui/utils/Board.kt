@@ -53,10 +53,8 @@ fun Board(modifier:Modifier=Modifier,
 
                         if(newPoint in stateWrapper.value.movePoints)
                             point?.let {
-                                runBlocking {
-                                    Logger.getLogger("Board").info("Moving $it to $newPoint")
-                                    boardUpdater?.move(point!!, newPoint)
-                                }
+                                Logger.getLogger("Board").info("Moving $it to $newPoint")
+                                boardUpdater?.move(point!!, newPoint)
                             }
 
                         point = if(newPoint == point) null else newPoint

@@ -35,7 +35,9 @@ class StandardStateStreamer(private val state: GameState,
                 board = state.board,
                 gameId = state.gameId,
                 nameWhite = state.nameWhite,
-                nameBlack = state.nameBlack
+                nameBlack = state.nameBlack,
+                drawWhite = state.drawWhite,
+                drawBlack = state.drawBlack
             )
         }
     }

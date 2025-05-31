@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.skryg.checkersbluetooth.CheckersApplication
 import com.skryg.checkersbluetooth.MainActivity
 import com.skryg.checkersbluetooth.R
 import com.skryg.checkersbluetooth.game.ui.utils.LittleBoard
@@ -53,7 +54,7 @@ object SettingsDestination: NavigationDestination(
 @Composable
 fun SettingsScreen(themeChange: ()-> Unit){
     val context = LocalContext.current as MainActivity
-    val sharedPref = context.getPreferences(Context.MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences(CheckersApplication.TAG, Context.MODE_PRIVATE)
     val nickPref = stringResource(R.string.player_nick)
     val defaultNick = stringResource(id = R.string.player_default)
 

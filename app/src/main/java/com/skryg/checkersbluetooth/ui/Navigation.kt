@@ -19,6 +19,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.skryg.checkersbluetooth.CheckersApplication
 import com.skryg.checkersbluetooth.game.logic.core.standard.StandardGameCoreFactory
+import com.skryg.checkersbluetooth.game.logic.model.GameConnection
+import com.skryg.checkersbluetooth.game.services.LocalGameProvider
 import com.skryg.checkersbluetooth.game.ui.GameViewModelFactory
 import com.skryg.checkersbluetooth.game.ui.view.LocalGameDestination
 import com.skryg.checkersbluetooth.game.ui.view.LocalGameScreen
@@ -98,10 +100,12 @@ fun Navigation() {
                             val gameId: Long
                             if(act.isNotEmpty()){
                                 gameId = act[0].id
-                                gameController.loadGame(StandardGameCoreFactory(repository), gameId)
                             } else {
-                                gameId = gameController.createGame(StandardGameCoreFactory(repository))
+                                val connection = GameConnection.LOCAL
+                                gameId = gameController.createGame(connection)
                             }
+                            val gameProvider = LocalGameProvider(gameId, StandardGameCoreFactory(repository))
+                            gameController.loadGame(gameProvider)
 
                             val route = LocalGameDestination.route.replace(Regex("\\{[^}]*\\}"),
                                 gameId.toString())
@@ -153,8 +157,11 @@ fun Navigation() {
 
                     val newGame: () -> Unit = {
                         runBlocking {
-                            val newGameId = gameController.createGame(StandardGameCoreFactory(repository))
-                            gameController.loadGame(StandardGameCoreFactory(repository), newGameId)
+                            val gameConnection = GameConnection.LOCAL
+                            val newGameId = gameController.createGame(gameConnection)
+                            val provider = LocalGameProvider(newGameId, StandardGameCoreFactory(repository))
+
+                            gameController.loadGame(provider)
 
                             navController.navigate(
                                 LocalGameDestination.route.replace(Regex("\\{[^}]*\\}"),

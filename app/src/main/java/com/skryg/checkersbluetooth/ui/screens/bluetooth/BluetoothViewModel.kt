@@ -16,6 +16,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Parcelable
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.core.app.ActivityCompat
@@ -23,6 +24,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.skryg.checkersbluetooth.bluetooth.BluetoothGameService
 import com.skryg.checkersbluetooth.bluetooth.BluetoothSocketWrapperHolder
 import com.skryg.checkersbluetooth.bluetooth.BluetoothUtils
+import com.skryg.checkersbluetooth.game.logic.model.Turn
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +35,7 @@ import java.util.logging.Logger
 
 @SuppressLint("MissingPermission")
 class BluetoothViewModel(application: Application): AndroidViewModel(application) {
-
+    private var initialTurn = Turn.WHITE
     private val bluetoothManager: BluetoothManager = getApplication<Application>()
         .getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
@@ -60,8 +62,10 @@ class BluetoothViewModel(application: Application): AndroidViewModel(application
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 BluetoothDevice.ACTION_FOUND -> {
+                    Log.d("BluetoothViewModel", "Device found")
                     val device: BluetoothDevice? = intent.parcelable(BluetoothDevice.EXTRA_DEVICE)
                     device?.let {
+                        Log.d("BluetoothViewModel", "Found device: ${it.name} at ${it.address}")
                         if (!foundDevices.contains(it.address)) {
                             foundDevices.add(it.address)
                             _devices.value += it
@@ -77,8 +81,6 @@ class BluetoothViewModel(application: Application): AndroidViewModel(application
             .info("BluetoothManager initialized: $bluetoothManager")
         Logger.getLogger("BluetoothViewModel")
             .info("Bluetooth supported: $isBluetoothSupported, enabled: $isBluetoothEnabled")
-
-
     }
 
     fun connectToDevice(device: BluetoothDevice) {
@@ -149,11 +151,15 @@ class BluetoothViewModel(application: Application): AndroidViewModel(application
             BluetoothSocketWrapperHolder.socket = socket
             val context = getApplication<Application>().applicationContext
             val serviceIntent = Intent(context, BluetoothGameService::class.java)
-            context.startService(serviceIntent)
+            context.startForegroundService(serviceIntent)
             Logger.getLogger("BluetoothViewModel").info("Game service started")
         } else {
             Logger.getLogger("BluetoothViewModel").warning("Bluetooth is not enabled, cannot start game service")
         }
+    }
+
+    fun setTurn(turn: Turn) {
+        initialTurn = turn
     }
 
     private inner class AcceptThread(private val onConnected: (BluetoothSocket) -> Unit): Thread() {

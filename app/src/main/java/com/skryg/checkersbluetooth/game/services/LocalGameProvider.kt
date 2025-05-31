@@ -7,7 +7,7 @@ import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
 import kotlinx.coroutines.runBlocking
 
 
-class GameProviderImpl(val id: Long, private val factory: GameCoreFactory): GameProvider {
+class LocalGameProvider(override val id: Long, private val factory: GameCoreFactory): GameProvider {
     init {
         runBlocking {
             val initializer = factory.getGameInitializer()

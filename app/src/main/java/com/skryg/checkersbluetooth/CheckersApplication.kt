@@ -8,6 +8,10 @@ import com.skryg.checkersbluetooth.sound.GameSounds
 import com.skryg.checkersbluetooth.sound.GameSoundsImpl
 
 class CheckersApplication: Application() {
+    companion object {
+        const val TAG = "CheckersApplication"
+    }
+
     lateinit var container: AppContainer
     lateinit var gameSounds: GameSounds
 
