@@ -107,11 +107,16 @@ class BluetoothGameService: LifecycleService() {
             gameId,
             this@BluetoothGameService,
             gameFactory,
-            localPlayerTurn
+            localPlayerTurn,
+            lifecycleScope
         )
         appContainer.gameController.loadGame(gameProvider!!)
         _gameId.value = gameId
 
+    }
+
+    fun getProvider(): BluetoothGameProvider? {
+        return gameProvider
     }
 
     fun handleMessage(message: Message) {

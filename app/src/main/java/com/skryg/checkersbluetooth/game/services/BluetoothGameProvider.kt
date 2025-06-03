@@ -1,5 +1,6 @@
 package com.skryg.checkersbluetooth.game.services
 
+import androidx.compose.runtime.collectAsState
 import com.skryg.checkersbluetooth.bluetooth.BluetoothGameService
 import com.skryg.checkersbluetooth.bluetooth.DrawMessage
 import com.skryg.checkersbluetooth.bluetooth.MoveMessage
@@ -8,21 +9,33 @@ import com.skryg.checkersbluetooth.game.logic.core.GameCoreFactory
 import com.skryg.checkersbluetooth.game.logic.core.MoveChecker
 import com.skryg.checkersbluetooth.game.logic.core.PlayerMover
 import com.skryg.checkersbluetooth.game.logic.core.StateStreamer
+import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.logic.model.Turn
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.subscribe
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class BluetoothGameProvider(
     override val id: Long,
     private val service: BluetoothGameService,
     private val gameCoreFactory: GameCoreFactory,
-    val localPlayerTurn: Turn
+    val localPlayerTurn: Turn,
+    coroutineScope: CoroutineScope? = null
 ) : GameProvider {
     init {
         runBlocking {
             val initializer = gameCoreFactory.getGameInitializer()
             initializer.initialize()
             initializer.load(id)
+        }
+        coroutineScope?.launch {
+            gameCoreFactory.getStateStreamer().getStateFlow().collect {
+                if(it.result != GameResult.ONGOING) {
+                    service.stopSelf()
+                }
+            }
         }
     }
 
@@ -49,6 +62,7 @@ class BluetoothGameProvider(
     }
 
     override fun getStateStreamer(): StateStreamer {
+
         return gameCoreFactory.getStateStreamer()
     }
 

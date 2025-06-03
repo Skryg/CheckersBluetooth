@@ -41,8 +41,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.skryg.checkersbluetooth.CheckersApplication
 import com.skryg.checkersbluetooth.R
+import com.skryg.checkersbluetooth.bluetooth.BluetoothGameService
 import com.skryg.checkersbluetooth.bluetooth.BluetoothUtils
+import com.skryg.checkersbluetooth.bluetooth.ServiceConnectionManager
 import com.skryg.checkersbluetooth.ui.NavigationDestination
 
 object MainDestination: NavigationDestination(
@@ -53,7 +56,7 @@ object MainDestination: NavigationDestination(
 )
 
 @Composable
-fun MainScreen(localGame: () -> Unit={}, bluetoothHost: () -> Unit={}, bluetoothScan: () -> Unit = {}) {
+fun MainScreen(localGame: () -> Unit={}, bluetoothHost: () -> Unit={}, bluetoothScan: () -> Unit = {}, navigateGame: (Long) -> Unit = {}) {
     fun isBluetoothAvailable(context: Context): Boolean {
         val bluetoothAdapter: BluetoothAdapter? =
             (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
@@ -74,8 +77,6 @@ fun MainScreen(localGame: () -> Unit={}, bluetoothHost: () -> Unit={}, bluetooth
         val granted = result.values.all { it }
         if (granted) {
             active = true
-        } else {
-            // Handle the case where permissions are not granted
         }
     }
 
@@ -103,8 +104,26 @@ fun MainScreen(localGame: () -> Unit={}, bluetoothHost: () -> Unit={}, bluetooth
                 bluetoothScan = bluetoothScan
             )
         }
+
         Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally){
             TextButton(enabled = bluetoothAvailable, onClick = {
+                try {
+                    if(BluetoothGameService.isServiceRunning && BluetoothUtils.checkGranted(context.applicationContext, permissions)) {
+                        val connectionManager = ServiceConnectionManager(context.applicationContext)
+                        connectionManager.bindService { service ->
+                            val provider = service.getProvider()
+                            provider?.let {
+                                navigateGame(provider.id)
+                            }
+                        }
+
+                        return@TextButton
+                    }
+                }
+                catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
                 if(BluetoothUtils.checkGranted(context.applicationContext, permissions)) {
                     active = true
                 } else {

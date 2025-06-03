@@ -1,5 +1,7 @@
 package com.skryg.checkersbluetooth.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.skryg.checkersbluetooth.CheckersApplication
+import com.skryg.checkersbluetooth.bluetooth.BluetoothUtils
 import com.skryg.checkersbluetooth.game.logic.core.standard.StandardGameCoreFactory
 import com.skryg.checkersbluetooth.game.logic.model.GameConnection
 import com.skryg.checkersbluetooth.game.services.LocalGameProvider
@@ -90,7 +93,7 @@ fun Navigation() {
         } else {
             { MenuBottomBar(navController = navController) }
         }
-    ){
+    ){ it ->
         Column(modifier = Modifier.padding(it)){
             NavHost(navController = navController, startDestination = MainDestination.route){
                 composable(MainDestination.route) {
@@ -118,6 +121,19 @@ fun Navigation() {
                             )
                         }
                     }
+
+                    val context = LocalContext.current
+                    val navigateGameOngoing: (Long) -> Unit = { gameId ->
+                        val route = BluetoothGameDestination.route.replace(Regex("\\{[^}]*\\}"),
+                            gameId.toString())
+                        navController.navigate(route, navOptions = NavOptions.Builder()
+                            .setPopUpTo(
+                                MainDestination.route,
+                                inclusive = false
+                            ).build())
+                    }
+
+
                     val bluetoothHost = {
                         navController.navigate(BluetoothHostDestination.route)
                     }
@@ -128,7 +144,8 @@ fun Navigation() {
                     MainScreen(
                         localGame = localGame,
                         bluetoothHost = bluetoothHost,
-                        bluetoothScan = bluetoothScan)
+                        bluetoothScan = bluetoothScan,
+                        navigateGame = navigateGameOngoing)
                 }
                 composable(SavedGamesDestination.route) {
                     SavedGamesScreen { game ->
