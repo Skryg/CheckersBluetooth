@@ -1,5 +1,6 @@
 package com.skryg.checkersbluetooth.game.services
 
+import android.util.Log
 import androidx.compose.runtime.collectAsState
 import com.skryg.checkersbluetooth.bluetooth.BluetoothGameService
 import com.skryg.checkersbluetooth.bluetooth.DrawMessage
@@ -19,10 +20,9 @@ import kotlinx.coroutines.runBlocking
 
 class BluetoothGameProvider(
     override val id: Long,
-    private val service: BluetoothGameService,
+    private var service: BluetoothGameService?,
     private val gameCoreFactory: GameCoreFactory,
     val localPlayerTurn: Turn,
-    coroutineScope: CoroutineScope? = null
 ) : GameProvider {
     init {
         runBlocking {
@@ -30,13 +30,10 @@ class BluetoothGameProvider(
             initializer.initialize()
             initializer.load(id)
         }
-        coroutineScope?.launch {
-            gameCoreFactory.getStateStreamer().getStateFlow().collect {
-                if(it.result != GameResult.ONGOING) {
-                    service.stopSelf()
-                }
-            }
-        }
+    }
+
+    fun releaseService(){
+        service = null
     }
 
     override fun getWhiteMover(): PlayerMover {
@@ -86,29 +83,26 @@ class BluetoothGameProvider(
     inner class BluetoothPlayerMoverWrapper(private val playerMover: PlayerMover,
                                             private val streamer: StateStreamer): PlayerMover {
         override suspend fun resign() {
-            playerMover.resign()
-            service.sendMessage(
+            service?.sendMessage(
                 ResignMessage("")
             )
+            playerMover.resign()
         }
 
         override suspend fun draw() {
-            playerMover.draw()
-            service.sendMessage(
+            service?.sendMessage(
                 DrawMessage("")
             )
+            playerMover.draw()
         }
 
         override suspend fun move(p1: Point, p2: Point): Boolean {
             if(streamer.getStateFlow().value.turn == localPlayerTurn) {
-                val result = playerMover.move(p1, p2)
-                if(result) {
-                    service.sendMessage(MoveMessage(
-                        from = p1.toString(),
-                        to = p2.toString()
-                    ))
-                }
-                return result
+                service?.sendMessage(MoveMessage(
+                    from = p1.toString(),
+                    to = p2.toString()
+                ))
+                return playerMover.move(p1, p2)
             }
             return false
         }

@@ -22,14 +22,17 @@ import com.skryg.checkersbluetooth.R
 import com.skryg.checkersbluetooth.game.logic.core.PlayerMover
 import com.skryg.checkersbluetooth.game.logic.core.standard.StandardGameCoreFactory
 import com.skryg.checkersbluetooth.game.logic.model.GameConnection
+import com.skryg.checkersbluetooth.game.logic.model.GameResult
 import com.skryg.checkersbluetooth.game.logic.model.GameType
 import com.skryg.checkersbluetooth.game.logic.model.Point
 import com.skryg.checkersbluetooth.game.logic.model.Turn
 import com.skryg.checkersbluetooth.game.logic.model.toPoint
 import com.skryg.checkersbluetooth.game.services.BluetoothGameProvider
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -107,8 +110,7 @@ class BluetoothGameService: LifecycleService() {
             gameId,
             this@BluetoothGameService,
             gameFactory,
-            localPlayerTurn,
-            lifecycleScope
+            localPlayerTurn
         )
         appContainer.gameController.loadGame(gameProvider!!)
         _gameId.value = gameId
@@ -154,6 +156,11 @@ class BluetoothGameService: LifecycleService() {
                     val playerMover: PlayerMover = gameProvider?.getRemotePlayerMover() ?:
                         throw IllegalStateException("Game provider is not initialized")
                     playerMover.move(moveMessage.from.toPoint(), moveMessage.to.toPoint())
+                    if(gameProvider?.getStateStreamer()?.getStateFlow()?.value?.result != GameResult.ONGOING) {
+                        withContext(Dispatchers.Main) {
+                            stopSelf()
+                        }
+                    }
                 }
             }
             is DrawMessage -> {
@@ -171,6 +178,9 @@ class BluetoothGameService: LifecycleService() {
                     val playerMover: PlayerMover = gameProvider?.getRemotePlayerMover() ?:
                         throw IllegalStateException("Game provider is not initialized")
                     playerMover.resign()
+                    withContext(Dispatchers.Main){
+                        stopSelf()
+                    }
                 }
             }
         }
@@ -196,7 +206,7 @@ class BluetoothGameService: LifecycleService() {
             try {
                 Log.d("GameService", "Starting connection thread")
                 startListening(socket)
-                stopSelf()
+//                stopSelf()
             } catch (e: IOException) {
                 Log.e("GameService", "Error starting connection thread", e)
             }
@@ -241,10 +251,10 @@ class BluetoothGameService: LifecycleService() {
                 }
             } catch (e: IOException) {
                 Log.e("GameService", "Error reading from socket", e)
+                stopSelf()
             } finally {
                 try {
                     socket.close()
-                    stopSelf()
                 } catch (e: IOException) {
                     Log.e("GameService", "Error closing socket", e)
                 }
@@ -269,8 +279,19 @@ class BluetoothGameService: LifecycleService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        inputThread?.interrupt()
-        bluetoothSocket?.close()
+        gameProvider?.releaseService()
+        try {
+            inputThread?.interrupt()
+        } catch (e: Exception) {
+            Log.e("GameService", "Error interrupting input thread", e)
+        }
+
+        try {
+            bluetoothSocket?.close()
+        } catch (e: IOException) {
+            Log.e("GameService", "Error closing Bluetooth socket", e)
+        }
+
         isServiceRunning = false
     }
 
